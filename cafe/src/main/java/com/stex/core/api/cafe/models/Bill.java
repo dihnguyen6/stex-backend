@@ -4,19 +4,22 @@ import com.stex.core.api.tools.Status;
 import com.stex.core.api.tools.Tools;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
+import org.springframework.hateoas.ResourceSupport;
 
 import java.util.Date;
 import java.util.List;
 
 @Document(collection = "bills")
-public class Bill {
+public class Bill extends ResourceSupport {
 
     @Id
     private ObjectId id;
 
+    @DBRef
     private List<Order> orders;
 
     private double preis;
@@ -42,7 +45,7 @@ public class Bill {
         this.status = Status.IN_PROGRESS;
     }
 
-    public ObjectId getId() {
+    public ObjectId getBillId() {
         return id;
     }
 

@@ -7,39 +7,33 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.hateoas.ResourceSupport;
 
-import java.util.List;
-
-@Document(collection = "patients")
-public class Patient extends ResourceSupport {
+@Document(collection = "doctors")
+public class Doctor extends ResourceSupport {
     @Id
-    private ObjectId patientId;
+    private ObjectId doctorId;
 
     @DBRef
     private Information information;
-
-    @DBRef
-    private List<Diagnose> diagnoses;
 
     private String firstName;
 
     private String lastName;
 
-    public Patient() {
+    public Doctor() {
     }
 
-    public Patient(Information information, List<Diagnose> diagnoses, String firstName, String lastName) {
+    public Doctor(Information information, String firstName, String lastName) {
         this.information = information;
-        this.diagnoses = diagnoses;
         this.firstName = firstName;
         this.lastName = lastName;
     }
 
-    public ObjectId getPatientId() {
-        return patientId;
+    public ObjectId getDoctorId() {
+        return doctorId;
     }
 
-    public void setPatientId(ObjectId patientId) {
-        this.patientId = patientId;
+    public void setDoctorId(ObjectId doctorId) {
+        this.doctorId = doctorId;
     }
 
     public Information getInformation() {
@@ -48,14 +42,6 @@ public class Patient extends ResourceSupport {
 
     public void setInformation(Information information) {
         this.information = information;
-    }
-
-    public List<Diagnose> getDiagnoses() {
-        return diagnoses;
-    }
-
-    public void setDiagnoses(List<Diagnose> diagnoses) {
-        this.diagnoses = diagnoses;
     }
 
     public String getFirstName() {

@@ -8,11 +8,12 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
+import org.springframework.hateoas.ResourceSupport;
 
 import java.util.Date;
 
 @Document(collection = "orders")
-public class Order {
+public class Order extends ResourceSupport {
 
     @Id
     private ObjectId id;
@@ -43,7 +44,7 @@ public class Order {
         this.status = Status.IN_PROGRESS;
     }
 
-    public ObjectId getId() {
+    public ObjectId getOrderId() {
         return id;
     }
 
