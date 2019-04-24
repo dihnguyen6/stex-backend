@@ -22,24 +22,55 @@ public class BillServiceImpl implements BillService {
     private BillRepository billRepository;
 
     public Bill findByBillId(ObjectId id) {
-        Bill foundBill = billRepository.findById(id);
-        LOGGER.info("Successful found Bill {}", foundBill.toString());
-        return foundBill;
+        if (billRepository.existsById(String.valueOf(id))) {
+            Bill foundBill = billRepository.findById(id);
+            LOGGER.info("Successful found Bill {}", foundBill);
+            return foundBill;
+        } else {
+            LOGGER.info("Cannot found Bill with id: [{}]", id);
+            return null;
+        }
     }
 
     public List<Bill> findAllBills() {
-        LOGGER.info("Loading all bills ...");
-        return billRepository.findAll();
+        List<Bill> bills = billRepository.findAll();
+        if (bills.isEmpty()) {
+            LOGGER.info("Bill's list is empty.");
+            return null;
+        } else {
+            LOGGER.info("Loading all bills ...");
+            for (Bill bill : bills) {
+                LOGGER.info("\nBill: {}\n", bill);
+            }
+            return bills;
+        }
+
     }
 
     public List<Bill> findAllByBillStatus(Status status) {
-        LOGGER.info("Loading all bills that are in the {} status.", status);
-        return billRepository.findAllByStatus(status);
+        List<Bill> bills = billRepository.findAllByStatus(status);
+        if (bills.isEmpty()) {
+            LOGGER.info("Bill's list is empty.");
+            return null;
+        } else {
+            LOGGER.info("Loading all bills that are in the {} status.", status);
+            for (Bill bill : bills) {
+                LOGGER.info("\nBill: [{}]\n", bill);
+            }
+            return bills;
+        }
+
     }
 
     public Bill findByBillStatusAndTable(Status status, int table) {
-        LOGGER.info("Successful found bill that is in {} status and {} table.", status, table );
-        return billRepository.findByStatusAndTable(status, table);
+        if (billRepository.findByStatusAndTable(status, table) != null) {
+            LOGGER.info("Successful found bill that is in {} status and {} table.", status, table);
+            LOGGER.info("\nBill: {}\n", billRepository.findByStatusAndTable(status, table));
+            return billRepository.findByStatusAndTable(status, table);
+        } else {
+            LOGGER.info("Cannot found bill that is in {} status and {} table.", status, table);
+            return null;
+        }
     }
 
     public Bill createBill(Bill bill) {
@@ -55,32 +86,50 @@ public class BillServiceImpl implements BillService {
     /**
      * @param bill updateBill
      */
-    public void updateBill(Bill bill) {
-        Bill updateBill = billRepository.findById(bill.getBillId());
-        updateBill.setOrders(bill.getOrders());
-        updateBill.setTable(bill.getTable());
-        updateBill.setUpdatedAt(new Date());
-        billRepository.save(updateBill);
-        LOGGER.info("Successful updated Bill {}", updateBill.toString());
-    }
-
-    public void checkoutBill(ObjectId id) {
-        Bill checkoutBill = billRepository.findById(id);
-        checkoutBill.setUpdatedAt(new Date());
-        double preis = 0;
-        for (Order order : checkoutBill.getOrders()) {
-            preis += order.getProduct().getPreis() * order.getQuantity();
+    public Bill updateBill(Bill bill) {
+        if (billRepository.existsById(String.valueOf(bill.getId()))) {
+            Bill updateBill = billRepository.findById(bill.getId());
+            updateBill.setOrders(bill.getOrders());
+            updateBill.setTable(bill.getTable());
+            updateBill.setUpdatedAt(new Date());
+            billRepository.save(updateBill);
+            LOGGER.info("Successful updated Bill {}", updateBill.toString());
+            return updateBill;
+        } else {
+            LOGGER.info("Cannot found bill with id: [{}]", bill.getId());
+            return null;
         }
-        checkoutBill.setPreis(preis);
-        checkoutBill.setStatus(Status.COMPLETED);
-        billRepository.save(checkoutBill);
-        LOGGER.info("Successful check out Bill {}", checkoutBill.toString());
     }
 
-    public void cancelBill(ObjectId id) {
-        Bill cancelBill = billRepository.findById(id);
-        cancelBill.setStatus(Status.CANCELLED);
-        cancelBill.setUpdatedAt(new Date());
-        LOGGER.info("Successful cancelled Bill {}", cancelBill.toString());
+    public Bill checkoutBill(ObjectId id) {
+        if (billRepository.existsById(String.valueOf(id))) {
+            Bill checkoutBill = billRepository.findById(id);
+            checkoutBill.setUpdatedAt(new Date());
+            double preis = 0;
+            for (Order order : checkoutBill.getOrders()) {
+                preis += order.getProduct().getPreis() * order.getQuantity();
+            }
+            checkoutBill.setPreis(preis);
+            checkoutBill.setStatus(Status.COMPLETED);
+            billRepository.save(checkoutBill);
+            LOGGER.info("Successful check out Bill {}", checkoutBill.toString());
+            return checkoutBill;
+        } else {
+            LOGGER.info("Cannot found bill with id: [{}]", id);
+            return null;
+        }
+    }
+
+    public Bill cancelBill(ObjectId id) {
+        if (billRepository.existsById(String.valueOf(id))) {
+            Bill cancelBill = billRepository.findById(id);
+            cancelBill.setStatus(Status.CANCELLED);
+            cancelBill.setUpdatedAt(new Date());
+            LOGGER.info("Successful cancelled Bill {}", cancelBill.toString());
+            return cancelBill;
+        } else {
+            LOGGER.info("Cannot found bill with id: [{}]", id);
+            return null;
+        }
     }
 }

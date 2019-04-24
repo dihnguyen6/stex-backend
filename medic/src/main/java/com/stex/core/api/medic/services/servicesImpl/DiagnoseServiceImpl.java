@@ -21,7 +21,7 @@ public class DiagnoseServiceImpl implements DiagnoseService {
     private DiagnoseRepository diagnoseRepository;
 
     public Diagnose findByDiagnoseId(ObjectId id) {
-        Diagnose diagnose = diagnoseRepository.findByDiagnoseId(id);
+        Diagnose diagnose = diagnoseRepository.findById(id);
         LOGGER.info("Successful found Diagnose {}", diagnose);
         return diagnose;
     }
@@ -53,7 +53,7 @@ public class DiagnoseServiceImpl implements DiagnoseService {
     }
 
     public void updateDiagnose(Diagnose diagnose) {
-        Diagnose updateDiagnose = diagnoseRepository.findByDiagnoseId(diagnose.getDiagnoseId());
+        Diagnose updateDiagnose = diagnoseRepository.findById(diagnose.getId());
         updateDiagnose.setUpdatedAt(new Date());
         updateDiagnose.setDescription(diagnose.getDescription());
         updateDiagnose.setReceptions(diagnose.getReceptions());
@@ -62,7 +62,7 @@ public class DiagnoseServiceImpl implements DiagnoseService {
     }
 
     public void completeDiagnose(ObjectId id) {
-        Diagnose completeDiagnose = diagnoseRepository.findByDiagnoseId(id);
+        Diagnose completeDiagnose = diagnoseRepository.findById(id);
         completeDiagnose.setStatus(Status.COMPLETED);
         completeDiagnose.setUpdatedAt(new Date());
         diagnoseRepository.save(completeDiagnose);

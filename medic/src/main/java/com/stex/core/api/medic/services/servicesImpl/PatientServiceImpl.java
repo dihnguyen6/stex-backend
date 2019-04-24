@@ -1,6 +1,5 @@
 package com.stex.core.api.medic.services.servicesImpl;
 
-import com.stex.core.api.medic.models.Diagnose;
 import com.stex.core.api.medic.models.Patient;
 import com.stex.core.api.medic.repositories.DiagnoseRepository;
 import com.stex.core.api.medic.repositories.PatientRepository;
@@ -24,7 +23,7 @@ public class PatientServiceImpl implements PatientService {
     private DiagnoseRepository diagnoseRepository;
 
     public Patient findByPatientId(ObjectId id) {
-        Patient foundPatient = patientRepository.findByPatientId(id);
+        Patient foundPatient = patientRepository.findById(id);
         LOGGER.info("Success found Patient {}", foundPatient);
         return foundPatient;
     }
@@ -51,7 +50,7 @@ public class PatientServiceImpl implements PatientService {
     }
 
     public void updatePatient(Patient patient) {
-        Patient updatePatient = patientRepository.findByPatientId(patient.getPatientId());
+        Patient updatePatient = patientRepository.findById(patient.getId());
         updatePatient.setFirstName(patient.getFirstName());
         updatePatient.setLastName(patient.getLastName());
         updatePatient.setInformation(patient.getInformation());

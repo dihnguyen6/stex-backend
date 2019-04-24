@@ -5,14 +5,13 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.hateoas.ResourceSupport;
 
 import java.util.List;
 
 @Document(collection = "patients")
-public class Patient extends ResourceSupport {
+public class Patient {
     @Id
-    private ObjectId patientId;
+    private ObjectId id;
 
     @DBRef
     private Information information;
@@ -34,12 +33,12 @@ public class Patient extends ResourceSupport {
         this.lastName = lastName;
     }
 
-    public ObjectId getPatientId() {
-        return patientId;
+    public ObjectId getId() {
+        return id;
     }
 
-    public void setPatientId(ObjectId patientId) {
-        this.patientId = patientId;
+    public void setId(ObjectId id) {
+        this.id = id;
     }
 
     public Information getInformation() {

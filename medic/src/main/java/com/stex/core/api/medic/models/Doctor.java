@@ -5,12 +5,11 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.hateoas.ResourceSupport;
 
 @Document(collection = "doctors")
-public class Doctor extends ResourceSupport {
+public class Doctor {
     @Id
-    private ObjectId doctorId;
+    private ObjectId id;
 
     @DBRef
     private Information information;
@@ -28,12 +27,12 @@ public class Doctor extends ResourceSupport {
         this.lastName = lastName;
     }
 
-    public ObjectId getDoctorId() {
-        return doctorId;
+    public ObjectId getId() {
+        return id;
     }
 
-    public void setDoctorId(ObjectId doctorId) {
-        this.doctorId = doctorId;
+    public void setId(ObjectId id) {
+        this.id = id;
     }
 
     public Information getInformation() {

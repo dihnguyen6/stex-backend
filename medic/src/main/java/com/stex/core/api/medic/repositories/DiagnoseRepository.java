@@ -10,7 +10,7 @@ import java.util.List;
 
 @Repository
 public interface DiagnoseRepository extends MongoRepository<Diagnose, String> {
-    Diagnose findByDiagnoseId(ObjectId id);
+    Diagnose findById(ObjectId id);
 
     @Query("{'doctor.id': ?0}")
     List<Diagnose> findAllByDoctor_Id(ObjectId id);

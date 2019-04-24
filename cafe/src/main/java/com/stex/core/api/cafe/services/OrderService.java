@@ -12,7 +12,7 @@ public interface OrderService {
     List<Order> findByOrderStatus(Status status);
 
     Order createOrder(Order order);
-    void updateOrder(Order order);
-    void completeOrder(ObjectId id);
-    void cancelOrder(ObjectId id);
+    Order updateOrder(Order order);
+    Order completeOrder(ObjectId id);
+    Order cancelOrder(ObjectId id);
 }

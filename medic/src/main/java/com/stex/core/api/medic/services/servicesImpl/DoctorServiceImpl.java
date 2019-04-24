@@ -19,7 +19,7 @@ public class DoctorServiceImpl implements DoctorService {
     private DoctorRepository doctorRepository;
 
     public Doctor findByDoctorId(ObjectId id) {
-        Doctor foundDoctor = doctorRepository.findByDoctorId(id);
+        Doctor foundDoctor = doctorRepository.findById(id);
         LOGGER.info("Successful found Doctor {}", foundDoctor);
         return foundDoctor;
     }
@@ -46,7 +46,7 @@ public class DoctorServiceImpl implements DoctorService {
     }
 
     public void updateDoctor(Doctor doctor) {
-        Doctor updateDoctor = doctorRepository.findByDoctorId(doctor.getDoctorId());
+        Doctor updateDoctor = doctorRepository.findById(doctor.getId());
         updateDoctor.setFirstName(doctor.getFirstName());
         updateDoctor.setLastName(doctor.getLastName());
         updateDoctor.setInformation(doctor.getInformation());

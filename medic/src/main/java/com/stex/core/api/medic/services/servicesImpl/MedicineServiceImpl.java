@@ -20,7 +20,7 @@ public class MedicineServiceImpl implements MedicineService {
     private MedicineRepository medicineRepository;
 
     public Medicine findByMedicineId(ObjectId id) {
-        Medicine foundMedicine = medicineRepository.findByMedicineId(id);
+        Medicine foundMedicine = medicineRepository.findById(id);
         LOGGER.info("Successful found Medicine {}", foundMedicine);
         return foundMedicine;
     }
@@ -37,7 +37,7 @@ public class MedicineServiceImpl implements MedicineService {
     }
 
     public void updateMedicine(Medicine medicine) {
-        Medicine updateMedicine = medicineRepository.findByMedicineId(medicine.getMedicineId());
+        Medicine updateMedicine = medicineRepository.findById(medicine.getId());
         updateMedicine.setContent(medicine.getContent());
         updateMedicine.setDescription(medicine.getDescription());
         updateMedicine.setManufacture(medicine.getManufacture());
@@ -47,7 +47,7 @@ public class MedicineServiceImpl implements MedicineService {
     }
 
     public void deleteMedicine(ObjectId id) {
-        Medicine deleteMedicine = medicineRepository.findByMedicineId(id);
+        Medicine deleteMedicine = medicineRepository.findById(id);
         medicineRepository.delete(deleteMedicine);
         LOGGER.info("Successful deleted Medicine {}", deleteMedicine);
     }

@@ -7,16 +7,15 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.hateoas.ResourceSupport;
 
 import java.util.Date;
 import java.util.List;
 
 @Document(collection = "diagnoses")
-public class Diagnose extends ResourceSupport {
+public class Diagnose {
 
     @Id
-    private ObjectId diagnoseId;
+    private ObjectId id;
 
     @DBRef
     private Doctor doctor;
@@ -46,12 +45,12 @@ public class Diagnose extends ResourceSupport {
         this.description = description;
     }
 
-    public ObjectId getDiagnoseId() {
-        return diagnoseId;
+    public ObjectId getId() {
+        return id;
     }
 
-    public void setDiagnoseId(ObjectId diagnoseId) {
-        this.diagnoseId = diagnoseId;
+    public void setId(ObjectId id) {
+        this.id = id;
     }
 
     public Doctor getDoctor() {

@@ -8,12 +8,11 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
-import org.springframework.hateoas.ResourceSupport;
 
 import java.util.Date;
 
 @Document(collection = "orders")
-public class Order extends ResourceSupport {
+public class Order {
 
     @Id
     private ObjectId id;
@@ -34,17 +33,10 @@ public class Order extends ResourceSupport {
     private Date updatedAt;
 
     public Order() {
-        this.status = Status.IN_PROGRESS;
+
     }
 
-    public Order(Product product, int quantity, String description) {
-        this.product = product;
-        this.quantity = quantity;
-        this.description = description;
-        this.status = Status.IN_PROGRESS;
-    }
-
-    public ObjectId getOrderId() {
+    public ObjectId getId() {
         return id;
     }
 

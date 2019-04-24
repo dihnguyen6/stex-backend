@@ -35,14 +35,20 @@ public class OrderServiceImpl implements OrderService {
      *
      * @param order update Order
      */
-    public void updateOrder(Order order) {
-        Order updateOrder = orderRepository.findById(order.getOrderId());
-        updateOrder.setDescription(order.getDescription());
-        updateOrder.setProduct(order.getProduct());
-        updateOrder.setQuantity(order.getQuantity());
-        updateOrder.setUpdatedAt(new Date());
-        LOGGER.info("Successful updated Order {}", updateOrder.toString());
-        orderRepository.save(updateOrder);
+    public Order updateOrder(Order order) {
+        if (orderRepository.existsById(String.valueOf(order.getId()))) {
+            Order updateOrder = orderRepository.findById(order.getId());
+            updateOrder.setDescription(order.getDescription());
+            updateOrder.setProduct(order.getProduct());
+            updateOrder.setQuantity(order.getQuantity());
+            updateOrder.setUpdatedAt(new Date());
+            LOGGER.info("Successful updated Order {}", updateOrder.toString());
+            orderRepository.save(updateOrder);
+            return updateOrder;
+        } else {
+            LOGGER.info("Cannot found Order with id: [{}]", order.getId());
+            return null;
+        }
     }
 
     /**
@@ -50,12 +56,18 @@ public class OrderServiceImpl implements OrderService {
      *
      * @param id OrderId
      */
-    public void completeOrder(ObjectId id) {
-        Order completeOrder = orderRepository.findById(id);
-        completeOrder.setStatus(Status.COMPLETED);
-        completeOrder.setUpdatedAt(new Date());
-        orderRepository.save(completeOrder);
-        LOGGER.info("Successful completed Order {}", completeOrder.toString());
+    public Order completeOrder(ObjectId id) {
+        if (orderRepository.existsById(String.valueOf(id))) {
+            Order completeOrder = orderRepository.findById(id);
+            completeOrder.setStatus(Status.COMPLETED);
+            completeOrder.setUpdatedAt(new Date());
+            orderRepository.save(completeOrder);
+            LOGGER.info("Successful completed Order {}", completeOrder.toString());
+            return completeOrder;
+        } else {
+            LOGGER.info("Cannot found Order with id: [{}]", id);
+            return null;
+        }
     }
 
     /**
@@ -63,28 +75,52 @@ public class OrderServiceImpl implements OrderService {
      *
      * @param id OrderId
      */
-    public void cancelOrder(ObjectId id) {
-        Order cancelOrder = orderRepository.findById(id);
-        cancelOrder.setStatus(Status.CANCELLED);
-        cancelOrder.setUpdatedAt(new Date());
-        orderRepository.save(cancelOrder);
-        LOGGER.info("Successful cancelled Order {}", cancelOrder.toString());
-
+    public Order cancelOrder(ObjectId id) {
+        if (orderRepository.existsById(String.valueOf(id))) {
+            Order cancelOrder = orderRepository.findById(id);
+            cancelOrder.setStatus(Status.CANCELLED);
+            cancelOrder.setUpdatedAt(new Date());
+            orderRepository.save(cancelOrder);
+            LOGGER.info("Successful cancelled Order {}", cancelOrder.toString());
+            return cancelOrder;
+        } else {
+            LOGGER.info("Cannot found Order with id: [{}]", id);
+            return null;
+        }
     }
 
     public Order findByOrderId(ObjectId id) {
-        Order foundOrder = orderRepository.findById(id);
-        LOGGER.info("Successful found Order {}", foundOrder.toString());
-        return foundOrder;
+        if (orderRepository.existsById(String.valueOf(id))) {
+            Order foundOrder = orderRepository.findById(id);
+            LOGGER.info("Successful found Order {}", foundOrder.toString());
+            return foundOrder;
+        } else {
+            LOGGER.info("Cannot found Order with id: [{}]", id);
+            return null;
+        }
     }
 
     public List<Order> findAllOrders() {
+        List<Order> orders = orderRepository.findAll();
+        if (orders.isEmpty()) {
+            LOGGER.info("Order's list is empty");
+        }
         LOGGER.info("Loading all orders ...");
-        return orderRepository.findAll();
+        for (Order order : orders) {
+            LOGGER.info("\nOrder: {} \n", order);
+        }
+        return orders;
     }
 
     public List<Order> findByOrderStatus(Status status) {
+        List<Order> orders = orderRepository.findAllByStatus(status);
+        if (orders.isEmpty()) {
+            LOGGER.info("Order' list is empty.");
+        }
         LOGGER.info("Loading all orders that are in the {} status.", status);
+        for (Order order : orders) {
+            LOGGER.info("\nOrder: {}\n", order);
+        }
         return orderRepository.findAllByStatus(status);
     }
 

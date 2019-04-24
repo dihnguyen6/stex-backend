@@ -8,13 +8,12 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
-import org.springframework.hateoas.ResourceSupport;
 
 import java.util.Date;
 import java.util.List;
 
 @Document(collection = "bills")
-public class Bill extends ResourceSupport {
+public class Bill {
 
     @Id
     private ObjectId id;
@@ -35,17 +34,9 @@ public class Bill extends ResourceSupport {
     private Date updatedAt;
 
     public Bill() {
-        this.preis = 0;
-        this.status = Status.IN_PROGRESS;
-    }
 
-    public Bill(List<Order> orders) {
-        this.orders = orders;
-        this.preis = 0;
-        this.status = Status.IN_PROGRESS;
     }
-
-    public ObjectId getBillId() {
+    public ObjectId getId() {
         return id;
     }
 

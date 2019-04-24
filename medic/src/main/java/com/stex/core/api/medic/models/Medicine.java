@@ -4,13 +4,12 @@ import com.stex.core.api.tools.Tools;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.hateoas.ResourceSupport;
 
 @Document(collection = "medicines")
-public class Medicine extends ResourceSupport {
+public class Medicine {
 
     @Id
-    private ObjectId medicineId;
+    private ObjectId id;
 
     private String name;
 
@@ -27,12 +26,12 @@ public class Medicine extends ResourceSupport {
         this.manufacture = manufacture;
     }
 
-    public ObjectId getMedicineId() {
-        return medicineId;
+    public ObjectId getId() {
+        return id;
     }
 
-    public void setMedicineId(ObjectId medicineId) {
-        this.medicineId = medicineId;
+    public void setId(ObjectId id) {
+        this.id = id;
     }
 
     public String getName() {

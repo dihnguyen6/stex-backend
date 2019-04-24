@@ -13,8 +13,8 @@ public interface BillService {
     Bill findByBillStatusAndTable(Status status, int table);
 
     Bill createBill(Bill bill);
-    void updateBill(Bill bill);
-    void checkoutBill(ObjectId id);
-    void cancelBill(ObjectId id);
+    Bill updateBill(Bill bill);
+    Bill checkoutBill(ObjectId id);
+    Bill cancelBill(ObjectId id);
 
 }

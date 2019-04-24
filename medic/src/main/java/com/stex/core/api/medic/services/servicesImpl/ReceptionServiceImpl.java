@@ -22,7 +22,7 @@ public class ReceptionServiceImpl implements ReceptionService {
     private ReceptionRepository receptionRepository;
 
     public Reception findByReceptionId(ObjectId id) {
-        Reception foundReception = receptionRepository.findByReceptionId(id);
+        Reception foundReception = receptionRepository.findById(id);
         LOGGER.info("Success found Reception {}", foundReception);
         return foundReception;
     }
@@ -45,7 +45,7 @@ public class ReceptionServiceImpl implements ReceptionService {
     }
 
     public void updateReception(Reception reception) {
-        Reception updateReception = receptionRepository.findByReceptionId(reception.getReceptionId());
+        Reception updateReception = receptionRepository.findById(reception.getId());
         updateReception.setDescription(reception.getDescription());
         updateReception.setMedicine(reception.getMedicine());
         updateReception.setQuantity(reception.getQuantity());
@@ -55,7 +55,7 @@ public class ReceptionServiceImpl implements ReceptionService {
     }
 
     public void completeReception(ObjectId id) {
-        Reception completeReception = receptionRepository.findByReceptionId(id);
+        Reception completeReception = receptionRepository.findById(id);
         completeReception.setUpdatedAt(new Date());
         completeReception.setStatus(Status.COMPLETED);
         receptionRepository.save(completeReception);
