@@ -7,9 +7,12 @@ import java.util.List;
 
 public interface MedicineService {
     Medicine findByMedicineId(ObjectId id);
+
     List<Medicine> findAllMedicines();
 
     Medicine createMedicine(Medicine medicine);
+
     void updateMedicine(Medicine medicine);
+
     void deleteMedicine(ObjectId id);
 }

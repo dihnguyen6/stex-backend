@@ -10,6 +10,8 @@ import java.util.List;
 @Repository
 public interface DoctorRepository extends MongoRepository<Doctor, String> {
     Doctor findByDoctorId(ObjectId id);
+
     List<Doctor> findAllByFirstNameOrderByLastName(String firstName, String lastName);
-    List<Doctor> findAllByFirstNameAndLastName (String firstName, String lastName);
+
+    List<Doctor> findAllByFirstNameAndLastName(String firstName, String lastName);
 }

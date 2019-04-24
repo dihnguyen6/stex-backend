@@ -17,6 +17,7 @@ import java.util.List;
 @Service
 public class BillServiceImpl implements BillService {
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
+
     @Autowired
     private BillRepository billRepository;
 

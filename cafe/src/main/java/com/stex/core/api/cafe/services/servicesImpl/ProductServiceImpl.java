@@ -15,8 +15,12 @@ import java.util.List;
 public class ProductServiceImpl implements ProductService {
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
+    private final ProductRepository productRepository;
+
     @Autowired
-    private ProductRepository productRepository;
+    public ProductServiceImpl(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
 
     public Product createProduct(Product product) {
         Product newProduct = productRepository.save(product);

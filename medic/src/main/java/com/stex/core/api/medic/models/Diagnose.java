@@ -24,6 +24,9 @@ public class Diagnose extends ResourceSupport {
     @DBRef
     private List<Reception> receptions;
 
+    @DBRef
+    private Patient patient;
+
     @DateTimeFormat
     private Date createdAt;
 
@@ -65,6 +68,14 @@ public class Diagnose extends ResourceSupport {
 
     public void setReceptions(List<Reception> receptions) {
         this.receptions = receptions;
+    }
+
+    public Patient getPatient() {
+        return patient;
+    }
+
+    public void setPatient(Patient patient) {
+        this.patient = patient;
     }
 
     public Date getCreatedAt() {

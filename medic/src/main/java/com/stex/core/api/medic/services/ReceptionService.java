@@ -7,10 +7,14 @@ import java.util.List;
 
 public interface ReceptionService {
     Reception findByReceptionId(ObjectId id);
+
     Reception findByDiagnoseId(ObjectId id);
-    List<Reception> findAllDiagnoses();
+
+    List<Reception> findAllReceptions();
 
     Reception createReception(Reception reception);
+
     void updateReception(Reception reception);
+
     void completeReception(ObjectId id);
 }

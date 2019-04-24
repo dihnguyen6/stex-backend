@@ -7,10 +7,14 @@ import java.util.List;
 
 public interface PatientService {
     Patient findByPatientId(ObjectId id);
+
     List<Patient> findAllPatients();
+
     List<Patient> findAllByFirstNameOrderByLastName(String firstName, String lastName);
-    Patient findByDiagnoseId(ObjectId id);
+
+    List<Patient> findAllByFirstNameAndLastName(String firstName, String lastName);
 
     Patient createPatient(Patient patient);
+
     void updatePatient(Patient patient);
 }
