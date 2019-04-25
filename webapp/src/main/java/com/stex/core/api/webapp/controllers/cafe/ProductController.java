@@ -5,7 +5,6 @@ import com.stex.core.api.cafe.services.ProductService;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -32,19 +31,24 @@ public class ProductController {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
-    private ProductService productService;
+    private final ProductService productService;
+
+    public ProductController(ProductService productService) {
+        this.productService = productService;
+    }
 
     @GetMapping("/")
     public HttpEntity<List<Product>> getAllProduct() {
         List<Product> products = productService.findAllProducts();
         if (products.isEmpty()) {
+            LOGGER.debug("Product's list is empty.");
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } else {
             products.forEach(p -> p.add(linkTo(methodOn(ProductController.class)
                     .getAllProduct()).withRel("products")));
             products.forEach(p -> p.add(linkTo(methodOn(ProductController.class)
-            .getProductById(p.getProductId())).withSelfRel()));
+                    .getProductById(p.getProductId())).withSelfRel()));
+            LOGGER.debug("Loading all Products...\n{}", products);
             return new ResponseEntity<>(products, HttpStatus.OK);
         }
     }
@@ -53,22 +57,25 @@ public class ProductController {
     public HttpEntity<Product> getProductById(@PathVariable ObjectId id) {
         Product product = productService.findByProductId(id);
         if (product == null) {
+            LOGGER.debug("Cannot found Product [id: {}]", id);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } else {
             product.add(linkTo(methodOn(ProductController.class)
                     .getProductById(product.getProductId())).withSelfRel());
+            LOGGER.debug("Successful found Product [id: {}]\n{}", id, product);
             return new ResponseEntity<>(product, HttpStatus.OK);
         }
     }
 
     @PostMapping("/")
     public HttpEntity<Product> createProduct(@RequestBody Product product) {
-        productService.createProduct(product);
+        Product createdProduct = productService.createProduct(product);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest().path("/{id}")
-                .buildAndExpand(product.getProductId()).toUri();
+                .buildAndExpand(createdProduct.getProductId()).toUri();
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setLocation(location);
+        LOGGER.debug("Successful created Product:\n{}", createdProduct);
         return new ResponseEntity<>(httpHeaders, HttpStatus.CREATED);
     }
 
@@ -76,16 +83,29 @@ public class ProductController {
     public HttpEntity<Product> updateProduct(@PathVariable ObjectId id, @RequestBody Product product) {
         Product updateProduct = productService.findByProductId(id);
         if (updateProduct == null) {
+            LOGGER.debug("Cannot found Product [id: {}]", id);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } else {
-            productService.updateProduct(product);
+            if (product.getName() != null || product.getName().length() != 0) {
+                updateProduct.setName(product.getName());
+            }
+            //TODO check if preis is null
+            updateProduct.setPreis(product.getPreis());
+            productService.updateProduct(updateProduct);
+            updateProduct.add(linkTo(methodOn(ProductController.class)
+                    .getAllProduct()).withRel("products"));
+            updateProduct.add(linkTo(methodOn(ProductController.class)
+                    .getProductById(updateProduct.getProductId())).withSelfRel());
+            LOGGER.debug("Successful updated Product with id: [{}]\n{}", id, updateProduct);
             return new ResponseEntity<>(updateProduct, HttpStatus.OK);
         }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Product> deleteProduct(@PathVariable ObjectId id) {
+        LOGGER.debug("Deleting Product:\n{}", productService.findByProductId(id));
         productService.deleteProduct(id);
+        LOGGER.debug("Successful deleted Product [id: {}]", id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

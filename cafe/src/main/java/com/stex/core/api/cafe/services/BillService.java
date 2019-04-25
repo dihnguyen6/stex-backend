@@ -11,10 +11,7 @@ public interface BillService {
     List<Bill> findAllBills();
     List<Bill> findAllByBillStatus(Status status);
     Bill findByBillStatusAndTable(Status status, int table);
-
+    boolean existsBill(Bill bill);
     Bill createBill(Bill bill);
     Bill updateBill(Bill bill);
-    Bill checkoutBill(ObjectId id);
-    Bill cancelBill(ObjectId id);
-
 }

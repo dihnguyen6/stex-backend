@@ -1,7 +1,9 @@
 package com.stex.core.api.cafe.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.stex.core.api.tools.ObjectID_Serializer;
 import com.stex.core.api.tools.Status;
-import com.stex.core.api.tools.Tools;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
@@ -21,6 +23,10 @@ public class Order extends ResourceSupport {
     @DBRef
     private Product product;
 
+    @DBRef
+    //@JsonBackReference
+    private Bill bill;
+
     private int quantity;
 
     private Status status;
@@ -37,6 +43,7 @@ public class Order extends ResourceSupport {
 
     }
 
+    @JsonSerialize(using = ObjectID_Serializer.class)
     public ObjectId getOrderId() {
         return id;
     }
@@ -51,6 +58,14 @@ public class Order extends ResourceSupport {
 
     public void setProduct(Product product) {
         this.product = product;
+    }
+
+    public Bill getBill() {
+        return bill;
+    }
+
+    public void setBill(Bill bill) {
+        this.bill = bill;
     }
 
     public int getQuantity() {
@@ -95,6 +110,15 @@ public class Order extends ResourceSupport {
 
     @Override
     public String toString() {
-        return Tools.toString(this);
+        return "\nOrder {\n" +
+                "\n\t\"id\": " + id +
+                ",\n\t\"product\": " + product +
+                ",\n\t\"bill\": " + bill +
+                ",\n\t\"quantity\": " + quantity +
+                ",\n\t\"status\": " + status +
+                ",\n\t\"description\": '" + description + '\'' +
+                ",\n\t\"createdAt\": " + createdAt +
+                ",\n\t\"updatedAt\": " + updatedAt +
+                "\n}";
     }
 }

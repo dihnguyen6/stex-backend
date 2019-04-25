@@ -1,7 +1,7 @@
 package com.stex.core.api.cafe.models;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.stex.core.api.tools.Tools;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.stex.core.api.tools.ObjectID_Serializer;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -18,6 +18,8 @@ public class Product extends ResourceSupport {
     public Product() {
     }
 
+
+    @JsonSerialize(using = ObjectID_Serializer.class)
     public ObjectId getProductId() {
         return id;
     }
@@ -42,8 +44,12 @@ public class Product extends ResourceSupport {
         this.preis = preis;
     }
 
-    /*@Override
+    @Override
     public String toString() {
-        return Tools.toString(this);
-    }*/
+        return "\nProduct {\n" +
+                "\n\t\"id\": " + id +
+                ",\n\t\"name\": '" + name + '\'' +
+                ",\n\t\"preis\": " + preis +
+                "\n}";
+    }
 }

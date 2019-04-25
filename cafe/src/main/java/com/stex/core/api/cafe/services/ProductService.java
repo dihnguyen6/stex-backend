@@ -12,5 +12,4 @@ public interface ProductService {
     Product createProduct(Product product);
     void deleteProduct(ObjectId id);
     Product updateProduct(Product product);
-
 }

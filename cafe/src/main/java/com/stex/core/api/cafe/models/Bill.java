@@ -1,7 +1,8 @@
 package com.stex.core.api.cafe.models;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.stex.core.api.tools.ObjectID_Serializer;
 import com.stex.core.api.tools.Status;
-import com.stex.core.api.tools.Tools;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
@@ -37,6 +38,8 @@ public class Bill extends ResourceSupport {
     public Bill() {
 
     }
+
+    @JsonSerialize(using = ObjectID_Serializer.class)
     public ObjectId getBillId() {
         return id;
     }
@@ -95,8 +98,14 @@ public class Bill extends ResourceSupport {
 
     @Override
     public String toString() {
-        return Tools.toString(this);
+        return "\nBill {\n" +
+                "\n\t\"id\": " + id +
+                ",\n\t\"orders\": " + orders +
+                ",\n\t\"preis\": " + preis +
+                ",\n\t\"status\": " + status +
+                ",\n\t\"table\": " + table +
+                ",\n\t\"createdAt\": " + createdAt +
+                ",\n\t\"updatedAt\": " + updatedAt +
+                "\n}";
     }
-
-
 }
