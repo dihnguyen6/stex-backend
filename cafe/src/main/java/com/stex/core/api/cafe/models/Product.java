@@ -1,12 +1,14 @@
 package com.stex.core.api.cafe.models;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.stex.core.api.tools.Tools;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.hateoas.ResourceSupport;
 
 @Document(collection = "products")
-public class Product {
+public class Product extends ResourceSupport {
     @Id
     private ObjectId id;
 
@@ -16,11 +18,11 @@ public class Product {
     public Product() {
     }
 
-    public ObjectId getId() {
+    public ObjectId getProductId() {
         return id;
     }
 
-    public void setId(ObjectId id) {
+    public void setProductId(ObjectId id) {
         this.id = id;
     }
 
@@ -40,8 +42,8 @@ public class Product {
         this.preis = preis;
     }
 
-    @Override
+    /*@Override
     public String toString() {
         return Tools.toString(this);
-    }
+    }*/
 }

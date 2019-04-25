@@ -24,7 +24,7 @@ public class BillServiceImpl implements BillService {
     public Bill findByBillId(ObjectId id) {
         if (billRepository.existsById(String.valueOf(id))) {
             Bill foundBill = billRepository.findById(id);
-            LOGGER.info("Successful found Bill {}", foundBill);
+            LOGGER.info("Successful found \nBill {}", foundBill);
             return foundBill;
         } else {
             LOGGER.info("Cannot found Bill with id: [{}]", id);
@@ -79,7 +79,7 @@ public class BillServiceImpl implements BillService {
         bill.setPreis(0);
         bill.setStatus(Status.IN_PROGRESS);
         Bill createBill = billRepository.save(bill);
-        LOGGER.info("Successful created bill {}", createBill.toString());
+        LOGGER.info("Successful created \nBill {}", createBill);
         return createBill;
     }
 
@@ -87,16 +87,16 @@ public class BillServiceImpl implements BillService {
      * @param bill updateBill
      */
     public Bill updateBill(Bill bill) {
-        if (billRepository.existsById(String.valueOf(bill.getId()))) {
-            Bill updateBill = billRepository.findById(bill.getId());
+        if (billRepository.existsById(String.valueOf(bill.getBillId()))) {
+            Bill updateBill = billRepository.findById(bill.getBillId());
             updateBill.setOrders(bill.getOrders());
             updateBill.setTable(bill.getTable());
             updateBill.setUpdatedAt(new Date());
             billRepository.save(updateBill);
-            LOGGER.info("Successful updated Bill {}", updateBill.toString());
+            LOGGER.info("Successful updated \nBill {}", updateBill);
             return updateBill;
         } else {
-            LOGGER.info("Cannot found bill with id: [{}]", bill.getId());
+            LOGGER.info("Cannot found bill with id: [{}]", bill.getBillId());
             return null;
         }
     }
@@ -112,7 +112,7 @@ public class BillServiceImpl implements BillService {
             checkoutBill.setPreis(preis);
             checkoutBill.setStatus(Status.COMPLETED);
             billRepository.save(checkoutBill);
-            LOGGER.info("Successful check out Bill {}", checkoutBill.toString());
+            LOGGER.info("Successful check out \nBill {}", checkoutBill);
             return checkoutBill;
         } else {
             LOGGER.info("Cannot found bill with id: [{}]", id);
@@ -125,7 +125,7 @@ public class BillServiceImpl implements BillService {
             Bill cancelBill = billRepository.findById(id);
             cancelBill.setStatus(Status.CANCELLED);
             cancelBill.setUpdatedAt(new Date());
-            LOGGER.info("Successful cancelled Bill {}", cancelBill.toString());
+            LOGGER.info("Successful cancelled \nBill {}", cancelBill);
             return cancelBill;
         } else {
             LOGGER.info("Cannot found bill with id: [{}]", id);

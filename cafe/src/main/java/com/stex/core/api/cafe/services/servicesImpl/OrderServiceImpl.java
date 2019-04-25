@@ -26,7 +26,7 @@ public class OrderServiceImpl implements OrderService {
         order.setUpdatedAt(new Date());
         order.setStatus(Status.IN_PROGRESS);
         Order createOrder = orderRepository.save(order);
-        LOGGER.info("Successful added Order {}", createOrder.toString());
+        LOGGER.info("Successful added \nOrder {}", createOrder);
         return createOrder;
     }
 
@@ -36,17 +36,17 @@ public class OrderServiceImpl implements OrderService {
      * @param order update Order
      */
     public Order updateOrder(Order order) {
-        if (orderRepository.existsById(String.valueOf(order.getId()))) {
-            Order updateOrder = orderRepository.findById(order.getId());
+        if (orderRepository.existsById(String.valueOf(order.getOrderId()))) {
+            Order updateOrder = orderRepository.findById(order.getOrderId());
             updateOrder.setDescription(order.getDescription());
             updateOrder.setProduct(order.getProduct());
             updateOrder.setQuantity(order.getQuantity());
             updateOrder.setUpdatedAt(new Date());
-            LOGGER.info("Successful updated Order {}", updateOrder.toString());
+            LOGGER.info("Successful updated \nOrder {}", updateOrder);
             orderRepository.save(updateOrder);
             return updateOrder;
         } else {
-            LOGGER.info("Cannot found Order with id: [{}]", order.getId());
+            LOGGER.info("Cannot found Order with id: [{}]", order.getOrderId());
             return null;
         }
     }
@@ -62,7 +62,7 @@ public class OrderServiceImpl implements OrderService {
             completeOrder.setStatus(Status.COMPLETED);
             completeOrder.setUpdatedAt(new Date());
             orderRepository.save(completeOrder);
-            LOGGER.info("Successful completed Order {}", completeOrder.toString());
+            LOGGER.info("Successful completed \nOrder {}", completeOrder);
             return completeOrder;
         } else {
             LOGGER.info("Cannot found Order with id: [{}]", id);
@@ -81,7 +81,7 @@ public class OrderServiceImpl implements OrderService {
             cancelOrder.setStatus(Status.CANCELLED);
             cancelOrder.setUpdatedAt(new Date());
             orderRepository.save(cancelOrder);
-            LOGGER.info("Successful cancelled Order {}", cancelOrder.toString());
+            LOGGER.info("Successful cancelled \nOrder {}", cancelOrder);
             return cancelOrder;
         } else {
             LOGGER.info("Cannot found Order with id: [{}]", id);
@@ -92,7 +92,7 @@ public class OrderServiceImpl implements OrderService {
     public Order findByOrderId(ObjectId id) {
         if (orderRepository.existsById(String.valueOf(id))) {
             Order foundOrder = orderRepository.findById(id);
-            LOGGER.info("Successful found Order {}", foundOrder.toString());
+            LOGGER.info("Successful found \nOrder {}", foundOrder);
             return foundOrder;
         } else {
             LOGGER.info("Cannot found Order with id: [{}]", id);
