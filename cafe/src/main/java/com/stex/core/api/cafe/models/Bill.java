@@ -1,5 +1,6 @@
 package com.stex.core.api.cafe.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.stex.core.api.tools.ObjectID_Serializer;
 import com.stex.core.api.tools.Status;
@@ -20,7 +21,7 @@ public class Bill extends ResourceSupport {
     @Id
     private ObjectId id;
 
-    @DBRef
+    @JsonBackReference
     private List<Order> orders;
 
     private double preis;

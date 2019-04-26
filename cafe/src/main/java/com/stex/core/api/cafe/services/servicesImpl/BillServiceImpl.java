@@ -29,16 +29,6 @@ public class BillServiceImpl implements BillService {
         return billRepository.findAllByStatus(status);
     }
 
-    public Bill findByBillStatusAndTable(Status status, int table) {
-        return billRepository.findByStatusAndTable(status, table);
-    }
-
-    //TODO check NoSQL queries.
-    @Override
-    public boolean existsBill(Bill bill) {
-        return billRepository.exists(Example.of(bill));
-    }
-
     public Bill createBill(Bill bill) {
         return billRepository.save(bill);
     }

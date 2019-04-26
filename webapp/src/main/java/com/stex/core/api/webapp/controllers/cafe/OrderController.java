@@ -1,6 +1,8 @@
 package com.stex.core.api.webapp.controllers.cafe;
 
+import com.stex.core.api.cafe.models.Bill;
 import com.stex.core.api.cafe.models.Order;
+import com.stex.core.api.cafe.services.BillService;
 import com.stex.core.api.cafe.services.OrderService;
 import com.stex.core.api.tools.Status;
 import org.bson.types.ObjectId;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -34,8 +37,11 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    public OrderController(OrderService orderService) {
+    private final BillService biilService;
+
+    public OrderController(OrderService orderService, BillService biilService) {
         this.orderService = orderService;
+        this.biilService = biilService;
     }
 
     @GetMapping("/")
@@ -46,7 +52,7 @@ public class OrderController {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } else {
             addHateoasToListOrders(orders);
-            LOGGER.debug("Loading all Orders...\n{}", orders);
+            LOGGER.debug("Loading all Orders... {}", orders);
             return new ResponseEntity<>(orders, HttpStatus.OK);
         }
     }
@@ -59,7 +65,7 @@ public class OrderController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } else {
             addHateoasToOrder(order);
-            LOGGER.debug("Successful found Order [id: {}]\n{}", id, order);
+            LOGGER.debug("Successful found Order [id: {}]{}", id, order);
             return new ResponseEntity<>(order, HttpStatus.OK);
         }
     }
@@ -72,7 +78,7 @@ public class OrderController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } else {
             addHateoasToListOrders(orders);
-            LOGGER.debug("Loading all Orders that are in [{}} status.\n{}", status, orders);
+            LOGGER.debug("Loading all Orders that are in [{}} status.{}", status, orders);
             return new ResponseEntity<>(orders, HttpStatus.OK);
         }
     }
@@ -83,7 +89,17 @@ public class OrderController {
         order.setCreatedAt(new Date());
         order.setUpdatedAt(new Date());
         Order createdOrder = orderService.createOrder(order);
-        LOGGER.debug("Successful created Order:\n{}", orderService.findByOrderId(createdOrder.getOrderId()));
+
+        Bill bill = biilService.findByBillId(order.getBill().getBillId());
+
+        if (bill.getOrders() == null) {
+            bill.setOrders(new ArrayList<>());
+            bill.getOrders().add(order);
+        } else {
+            bill.getOrders().add(order);
+        }
+        biilService.updateBill(bill);
+        LOGGER.debug("Successful created Order:{}", orderService.findByOrderId(createdOrder.getOrderId()));
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest().path("/{id}")
                 .buildAndExpand(createdOrder.getOrderId()).toUri();
@@ -99,8 +115,8 @@ public class OrderController {
             LOGGER.debug("Cannot found Order [id: {}]", id);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } else {
-            updateOrder.setUpdatedAt(new Date());
-            if (order.getDescription() != null || order.getDescription().length() != 0) {
+            order.setUpdatedAt(new Date());
+            if (order.getDescription() != null) {
                 updateOrder.setDescription(order.getDescription());
             }
             if (order.getProduct() != null) {
@@ -108,14 +124,14 @@ public class OrderController {
             }
             //TODO check if quantity is null
             updateOrder.setQuantity(order.getQuantity());
-            orderService.updateOrder(updateOrder);
+            orderService.updateOrder(order);
             addHateoasToOrder(updateOrder);
-            LOGGER.debug("Successful updated Order with id: [{}]\n{}", id, updateOrder);
+            LOGGER.debug("Successful updated Order with id: [{}]{}", id, updateOrder);
             return new ResponseEntity<>(updateOrder, HttpStatus.OK);
         }
     }
 
-    @PutMapping("/{id}/completed")
+    @PutMapping("/{id}?completed")
     public HttpEntity<Order> completeOrder(@PathVariable ObjectId id) {
         Order completeOrder = orderService.findByOrderId(id);
         if (completeOrder == null) {
@@ -131,13 +147,13 @@ public class OrderController {
                 completeOrder.setStatus(Status.COMPLETED);
                 orderService.updateOrder(completeOrder);
                 addHateoasToOrder(completeOrder);
-                LOGGER.debug("Successful completed Order with [id: {}]\n{}", id, completeOrder);
+                LOGGER.debug("Successful completed Order with [id: {}]{}", id, completeOrder);
                 return new ResponseEntity<>(completeOrder, HttpStatus.OK);
             }
         }
     }
 
-    @PutMapping("/{id}/cancelled")
+    @PutMapping("/{id}?cancelled")
     public HttpEntity<Order> cancelOrder(@PathVariable ObjectId id) {
         Order cancelOrder = orderService.findByOrderId(id);
         if (cancelOrder == null) {
@@ -153,7 +169,7 @@ public class OrderController {
                 cancelOrder.setStatus(Status.CANCELLED);
                 orderService.updateOrder(cancelOrder);
                 addHateoasToOrder(cancelOrder);
-                LOGGER.debug("Successful cancelled Order with [id: {}]\n{}", id, cancelOrder);
+                LOGGER.debug("Successful cancelled Order with [id: {}]{}", id, cancelOrder);
                 return new ResponseEntity<>(cancelOrder, HttpStatus.OK);
             }
         }

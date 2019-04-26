@@ -11,6 +11,6 @@ import java.util.List;
 public interface BillRepository extends MongoRepository<Bill, String> {
     Bill findById (ObjectId id);
     List<Bill> findAllByStatus(Status status);
-    @Query("{'status': ?0, 'table': ?1}")
     Bill findByStatusAndTable (Status status, int table);
+    Bill findBillByStatusAndTable(Status status, int table);
 }

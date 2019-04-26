@@ -10,8 +10,8 @@ public interface BillService {
     Bill findByBillId(ObjectId id);
     List<Bill> findAllBills();
     List<Bill> findAllByBillStatus(Status status);
-    Bill findByBillStatusAndTable(Status status, int table);
-    boolean existsBill(Bill bill);
+    /*Bill findBillByStatusAndTable(Status status, int table);
+    boolean existsBill(Bill bill);*/
     Bill createBill(Bill bill);
     Bill updateBill(Bill bill);
 }
