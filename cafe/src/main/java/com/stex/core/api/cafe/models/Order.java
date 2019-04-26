@@ -1,6 +1,5 @@
 package com.stex.core.api.cafe.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.stex.core.api.tools.ObjectID_Serializer;
 import com.stex.core.api.tools.Status;
@@ -22,10 +21,6 @@ public class Order extends ResourceSupport {
 
     @DBRef
     private Product product;
-
-    @DBRef
-    //@JsonBackReference
-    private Bill bill;
 
     private int quantity;
 
@@ -58,14 +53,6 @@ public class Order extends ResourceSupport {
 
     public void setProduct(Product product) {
         this.product = product;
-    }
-
-    public Bill getBill() {
-        return bill;
-    }
-
-    public void setBill(Bill bill) {
-        this.bill = bill;
     }
 
     public int getQuantity() {
@@ -111,9 +98,9 @@ public class Order extends ResourceSupport {
     @Override
     public String toString() {
         return "\nOrder {\n" +
-                "\n\t\"id\": " + id +
+                "\t\"id\": " + id +
                 ",\n\t\"product\": " + product +
-                ",\n\t\"bill\": " + bill +
+                //",\n\t\"bill\": " + bill +
                 ",\n\t\"quantity\": " + quantity +
                 ",\n\t\"status\": " + status +
                 ",\n\t\"description\": '" + description + '\'' +

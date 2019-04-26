@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(value = HttpStatus.NOT_FOUND)
+@ResponseStatus(HttpStatus.NOT_FOUND)
 public class ResourceNotFoundException extends RuntimeException{
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
@@ -33,4 +33,5 @@ public class ResourceNotFoundException extends RuntimeException{
     public Object getFieldValue() {
         return fieldValue;
     }
+
 }

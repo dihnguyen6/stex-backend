@@ -1,8 +1,6 @@
 package com.stex.core.api.webapp.controllers.cafe;
 
-import com.stex.core.api.cafe.models.Bill;
 import com.stex.core.api.cafe.models.Order;
-import com.stex.core.api.cafe.services.BillService;
 import com.stex.core.api.cafe.services.OrderService;
 import com.stex.core.api.tools.Status;
 import org.bson.types.ObjectId;
@@ -22,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -37,11 +34,8 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    private final BillService biilService;
-
-    public OrderController(OrderService orderService, BillService biilService) {
+    public OrderController(OrderService orderService) {
         this.orderService = orderService;
-        this.biilService = biilService;
     }
 
     @GetMapping("/")
@@ -89,16 +83,6 @@ public class OrderController {
         order.setCreatedAt(new Date());
         order.setUpdatedAt(new Date());
         Order createdOrder = orderService.createOrder(order);
-
-        Bill bill = biilService.findByBillId(order.getBill().getBillId());
-
-        if (bill.getOrders() == null) {
-            bill.setOrders(new ArrayList<>());
-            bill.getOrders().add(order);
-        } else {
-            bill.getOrders().add(order);
-        }
-        biilService.updateBill(bill);
         LOGGER.debug("Successful created Order:{}", orderService.findByOrderId(createdOrder.getOrderId()));
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest().path("/{id}")
@@ -131,7 +115,7 @@ public class OrderController {
         }
     }
 
-    @PutMapping("/{id}?completed")
+    @PutMapping("/{id}/completed")
     public HttpEntity<Order> completeOrder(@PathVariable ObjectId id) {
         Order completeOrder = orderService.findByOrderId(id);
         if (completeOrder == null) {
@@ -176,21 +160,7 @@ public class OrderController {
     }
 
     private void addHateoasToListOrders(List<Order> orders) {
-        orders.forEach(o -> o.add(linkTo(methodOn(OrderController.class)
-                .getAllOrders())
-                .withRel("orders")));
-        orders.forEach(o -> o.add(linkTo(methodOn(OrderController.class)
-                .getOrderById(o.getOrderId()))
-                .withSelfRel()));
-        //TODO add Link to embedded Product
-        orders.forEach(o -> o.getProduct()
-                .add(linkTo(methodOn(ProductController.class)
-                        .getProductById(o.getProduct().getProductId()))
-                        .withSelfRel()));
-        orders.forEach(o -> o.getBill()
-                .add(linkTo(methodOn(BillController.class)
-                        .getBillById(o.getBill().getBillId()))
-                        .withSelfRel()));
+        orders.forEach(this::addHateoasToOrder);
     }
 
     private void addHateoasToOrder(Order order) {
@@ -202,9 +172,6 @@ public class OrderController {
                 .withSelfRel());
         order.getProduct().add(linkTo(methodOn(ProductController.class)
                 .getProductById(order.getProduct().getProductId()))
-                .withSelfRel());
-        order.getBill().add(linkTo(methodOn(BillController.class)
-                .getBillById(order.getBill().getBillId()))
                 .withSelfRel());
     }
 }

@@ -63,5 +63,11 @@
             <artifactId>medic</artifactId>
             <version>0.1.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.stex.core</groupId>
+            <artifactId>tools</artifactId>
+            <version>0.1.0</version>
+        </dependency>
     </dependencies>
 </project>

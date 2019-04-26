@@ -2,12 +2,16 @@ package com.stex.core.api.webapp.controllers.cafe;
 
 import com.stex.core.api.cafe.models.Product;
 import com.stex.core.api.cafe.services.ProductService;
+import com.stex.core.api.tools.ExceptionHandler.ResourceNotFoundException;
+import com.stex.core.api.webapp.ResourcesAssembler.CafeResource.ProductResourceAssembler;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.ResourceSupport;
+import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,91 +25,83 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @RestController
-@RequestMapping("api/products")
+@RequestMapping(value = "api/products", produces = "application/hal+json")
 public class ProductController {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
     private final ProductService productService;
+    private final ProductResourceAssembler productResourceAssembler;
 
-    public ProductController(ProductService productService) {
+    @Autowired
+    public ProductController(ProductService productService, ProductResourceAssembler productResourceAssembler) {
         this.productService = productService;
+        this.productResourceAssembler = productResourceAssembler;
     }
 
     @GetMapping("/")
-    public HttpEntity<List<Product>> getAllProduct() {
-        List<Product> products = productService.findAllProducts();
-        if (products.isEmpty()) {
-            LOGGER.debug("Product's list is empty.");
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } else {
-            products.forEach(p -> p.add(linkTo(methodOn(ProductController.class)
-                    .getAllProduct()).withRel("products")));
-            products.forEach(p -> p.add(linkTo(methodOn(ProductController.class)
-                    .getProductById(p.getProductId())).withSelfRel()));
-            LOGGER.debug("Loading all Products...\n{}", products);
-            return new ResponseEntity<>(products, HttpStatus.OK);
-        }
+    public Resources<Resource<Product>> getAllProduct() {
+        List<Resource<Product>> products = productService.findAllProducts().stream()
+                .map(productResourceAssembler::toResource)
+                .collect(Collectors.toList());
+        return new Resources<>(products,
+                linkTo(methodOn(ProductController.class).getAllProduct()).withSelfRel());
     }
 
     @GetMapping("/{id}")
-    public HttpEntity<Product> getProductById(@PathVariable ObjectId id) {
+    public HttpEntity<?> getProductById(@PathVariable ObjectId id) {
         Product product = productService.findByProductId(id);
         if (product == null) {
-            LOGGER.debug("Cannot found Product [id: {}]", id);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } else {
-            product.add(linkTo(methodOn(ProductController.class)
-                    .getProductById(product.getProductId())).withSelfRel());
-            LOGGER.debug("Successful found Product [id: {}]\n{}", id, product);
-            return new ResponseEntity<>(product, HttpStatus.OK);
+            throw new ResourceNotFoundException("Product", "id", id);
         }
+        return ResponseEntity
+                .created(linkTo(methodOn(ProductController.class).getProductById(product.getProductId())).toUri())
+                .body(productResourceAssembler.toResource(product));
     }
 
     @PostMapping("/")
-    public HttpEntity<Product> createProduct(@RequestBody Product product) {
+    public ResponseEntity<Resource<Product>> createProduct(@RequestBody Product product) {
         Product createdProduct = productService.createProduct(product);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest().path("/{id}")
                 .buildAndExpand(createdProduct.getProductId()).toUri();
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setLocation(location);
         LOGGER.debug("Successful created Product:\n{}", createdProduct);
-        return new ResponseEntity<>(httpHeaders, HttpStatus.CREATED);
+        return ResponseEntity
+                .created(location)
+                .body(productResourceAssembler.toResource(createdProduct));
     }
 
     @PutMapping("/{id}")
-    public HttpEntity<Product> updateProduct(@PathVariable ObjectId id, @RequestBody Product product) {
+    public ResponseEntity<ResourceSupport> updateProduct(@PathVariable ObjectId id, @RequestBody Product product) {
         Product updateProduct = productService.findByProductId(id);
+
         if (updateProduct == null) {
-            LOGGER.debug("Cannot found Product [id: {}]", id);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            throw new ResourceNotFoundException("Product", "id", id);
         } else {
-            if (product.getName() != null || product.getName().length() != 0) {
+            if (product.getName() != null) {
                 updateProduct.setName(product.getName());
             }
-            //TODO check if preis is null
             updateProduct.setPreis(product.getPreis());
             productService.updateProduct(updateProduct);
-            updateProduct.add(linkTo(methodOn(ProductController.class)
-                    .getAllProduct()).withRel("products"));
-            updateProduct.add(linkTo(methodOn(ProductController.class)
-                    .getProductById(updateProduct.getProductId())).withSelfRel());
             LOGGER.debug("Successful updated Product with id: [{}]\n{}", id, updateProduct);
-            return new ResponseEntity<>(updateProduct, HttpStatus.OK);
+            return ResponseEntity.ok(productResourceAssembler.toResource(updateProduct));
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Product> deleteProduct(@PathVariable ObjectId id) {
-        LOGGER.debug("Deleting Product:\n{}", productService.findByProductId(id));
-        productService.deleteProduct(id);
+    public ResponseEntity<Resource<Product>> deleteProduct(@PathVariable ObjectId id) {
+        Product deleteProduct = productService.findByProductId(id);
+        if (deleteProduct == null) {
+            throw new ResourceNotFoundException("Product", "id", id);
+        }
+        productService.deleteProduct(deleteProduct);
         LOGGER.debug("Successful deleted Product [id: {}]", id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return ResponseEntity.ok().build();
     }
 }

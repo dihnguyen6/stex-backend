@@ -47,7 +47,7 @@ public class Product extends ResourceSupport {
     @Override
     public String toString() {
         return "\nProduct {\n" +
-                "\n\t\"id\": " + id +
+                "\t\"id\": " + id +
                 ",\n\t\"name\": '" + name + '\'' +
                 ",\n\t\"preis\": " + preis +
                 "\n}";

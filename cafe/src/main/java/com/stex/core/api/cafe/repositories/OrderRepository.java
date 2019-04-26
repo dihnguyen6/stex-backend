@@ -12,5 +12,5 @@ public interface OrderRepository extends MongoRepository<Order, String> {
     Order findById (ObjectId id);
     @Query("{'status': ?0}")
     List<Order> findAllByStatus(Status status);
-    List<Order> findAllByBill_Id (ObjectId id);
+    //List<Order> findAllByBill_Id (ObjectId id);
 }

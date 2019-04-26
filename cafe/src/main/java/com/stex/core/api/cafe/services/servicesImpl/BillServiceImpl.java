@@ -6,7 +6,6 @@ import com.stex.core.api.cafe.services.BillService;
 import com.stex.core.api.tools.Status;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,8 +13,12 @@ import java.util.List;
 @Service
 public class BillServiceImpl implements BillService {
 
+    private final BillRepository billRepository;
+
     @Autowired
-    private BillRepository billRepository;
+    public BillServiceImpl(BillRepository billRepository) {
+        this.billRepository = billRepository;
+    }
 
     public Bill findByBillId(ObjectId id) {
         return billRepository.findById(id);
@@ -27,6 +30,12 @@ public class BillServiceImpl implements BillService {
 
     public List<Bill> findAllByBillStatus(Status status) {
         return billRepository.findAllByStatus(status);
+    }
+
+    @Override
+    public boolean isAvailableTable(Status status, int table) {
+        List<Bill> bills = billRepository.findBillByStatusAndTable(status, table);
+        return bills.isEmpty();
     }
 
     public Bill createBill(Bill bill) {
