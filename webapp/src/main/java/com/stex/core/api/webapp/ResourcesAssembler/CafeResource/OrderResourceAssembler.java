@@ -1,7 +1,7 @@
 package com.stex.core.api.webapp.ResourcesAssembler.CafeResource;
 
 import com.stex.core.api.cafe.models.Order;
-import com.stex.core.api.tools.Status;
+import com.stex.core.api.tools.constants.Status;
 import com.stex.core.api.webapp.controllers.cafe.OrderController;
 import com.stex.core.api.webapp.controllers.cafe.ProductController;
 import org.springframework.hateoas.Resource;
@@ -25,10 +25,10 @@ public class OrderResourceAssembler implements ResourceAssembler<Order, Resource
 
         if (o.getStatus() == Status.IN_PROGRESS) {
             resource.add(linkTo(methodOn(OrderController.class)
-                    .completeOrder(o.getOrderId()))
+                    .updateStatusOrder(o.getOrderId(),"complete"))
                     .withRel("complete"));
             resource.add(linkTo(methodOn(OrderController.class)
-                    .cancelOrder(o.getOrderId()))
+                    .updateStatusOrder(o.getOrderId(), "cancel"))
                     .withRel("cancel"));
         }
         return resource;

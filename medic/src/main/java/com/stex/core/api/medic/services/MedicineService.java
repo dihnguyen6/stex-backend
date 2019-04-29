@@ -10,9 +10,7 @@ public interface MedicineService {
 
     List<Medicine> findAllMedicines();
 
-    Medicine createMedicine(Medicine medicine);
+    Medicine updateMedicine(Medicine medicine);
 
-    void updateMedicine(Medicine medicine);
-
-    void deleteMedicine(ObjectId id);
+    void deleteMedicine(Medicine medicine);
 }

@@ -13,13 +13,6 @@ public class Information {
     public Information() {
     }
 
-    public Information(String street, String number, String city, String phone) {
-        this.street = street;
-        this.number = number;
-        this.city = city;
-        this.phone = phone;
-    }
-
     public String getStreet() {
         return street;
     }
@@ -50,5 +43,15 @@ public class Information {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    @Override
+    public String toString() {
+        return "Information{" +
+                "street='" + street + '\'' +
+                ", number='" + number + '\'' +
+                ", city='" + city + '\'' +
+                ", phone='" + phone + '\'' +
+                '}';
     }
 }

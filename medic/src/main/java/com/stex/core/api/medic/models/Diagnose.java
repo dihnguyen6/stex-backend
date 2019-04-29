@@ -1,18 +1,20 @@
 package com.stex.core.api.medic.models;
 
-import com.stex.core.api.tools.Status;
-import com.stex.core.api.tools.Tools;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.stex.core.api.tools.ObjectID_Serializer;
+import com.stex.core.api.tools.constants.Status;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.hateoas.ResourceSupport;
 
 import java.util.Date;
 import java.util.List;
 
 @Document(collection = "diagnoses")
-public class Diagnose {
+public class Diagnose extends ResourceSupport {
 
     @Id
     private ObjectId id;
@@ -21,10 +23,10 @@ public class Diagnose {
     private Doctor doctor;
 
     @DBRef
-    private List<Reception> receptions;
+    private Patient patient;
 
     @DBRef
-    private Patient patient;
+    private List<Reception> receptions;
 
     @DateTimeFormat
     private Date createdAt;
@@ -39,17 +41,12 @@ public class Diagnose {
     public Diagnose() {
     }
 
-    public Diagnose(Doctor doctor, List<Reception> receptions, String description) {
-        this.doctor = doctor;
-        this.receptions = receptions;
-        this.description = description;
-    }
-
-    public ObjectId getId() {
+    @JsonSerialize(using = ObjectID_Serializer.class)
+    public ObjectId getDiagnoseId() {
         return id;
     }
 
-    public void setId(ObjectId id) {
+    public void setDiagnoseId(ObjectId id) {
         this.id = id;
     }
 
@@ -111,6 +108,14 @@ public class Diagnose {
 
     @Override
     public String toString() {
-        return Tools.toString(this);
+        return "Diagnose{" +
+                "id=" + id +
+                ", doctor=" + doctor +
+                ", receptions=" + receptions +
+                ", description='" + description + '\'' +
+                ", status=" + status +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
     }
 }

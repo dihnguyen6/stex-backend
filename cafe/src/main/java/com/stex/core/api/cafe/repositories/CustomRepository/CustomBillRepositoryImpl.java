@@ -1,7 +1,7 @@
 package com.stex.core.api.cafe.repositories.CustomRepository;
 
 import com.stex.core.api.cafe.models.Bill;
-import com.stex.core.api.tools.Status;
+import com.stex.core.api.tools.constants.Status;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;

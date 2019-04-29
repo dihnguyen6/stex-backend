@@ -6,12 +6,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.FORBIDDEN)
-public class ResourceNotAvailableException extends RuntimeException {
+public class ResourceForbiddenException extends RuntimeException {
     private String resourceName;
     private String fieldName;
     private Object fieldValue;
 
-    public ResourceNotAvailableException(String resourceName, String fieldName, Object fieldValue) {
+    public ResourceForbiddenException(String resourceName, String fieldName, Object fieldValue) {
         super(String.format("Method is not allowed." +
                 "You cannot change %s that is in %s %s.", resourceName, fieldValue, fieldName));
         Logger LOGGER = LoggerFactory.getLogger(this.getClass());

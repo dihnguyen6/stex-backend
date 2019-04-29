@@ -1,17 +1,17 @@
 package com.stex.core.api.medic.models;
 
-import com.stex.core.api.tools.Tools;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.stex.core.api.tools.ObjectID_Serializer;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.hateoas.ResourceSupport;
 
 @Document(collection = "doctors")
-public class Doctor {
+public class Doctor extends ResourceSupport {
     @Id
     private ObjectId id;
 
-    @DBRef
     private Information information;
 
     private String firstName;
@@ -21,17 +21,12 @@ public class Doctor {
     public Doctor() {
     }
 
-    public Doctor(Information information, String firstName, String lastName) {
-        this.information = information;
-        this.firstName = firstName;
-        this.lastName = lastName;
-    }
-
-    public ObjectId getId() {
+    @JsonSerialize(using = ObjectID_Serializer.class)
+    public ObjectId getDoctorId() {
         return id;
     }
 
-    public void setId(ObjectId id) {
+    public void setDoctorId(ObjectId id) {
         this.id = id;
     }
 
@@ -61,6 +56,11 @@ public class Doctor {
 
     @Override
     public String toString() {
-        return Tools.toString(this);
+        return "Doctor{" +
+                "id=" + id +
+                ", information=" + information +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                '}';
     }
 }

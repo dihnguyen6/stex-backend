@@ -9,7 +9,6 @@ public interface ProductService {
     Product findByProductId(ObjectId id);
     List<Product> findAllProducts();
 
-    Product createProduct(Product product);
     void deleteProduct(Product product);
     Product updateProduct(Product product);
 }

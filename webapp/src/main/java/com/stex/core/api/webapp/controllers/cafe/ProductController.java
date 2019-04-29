@@ -30,7 +30,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @RestController
-@RequestMapping(value = "api/products", produces = "application/hal+json")
+@RequestMapping(value = "/api/products", produces = "application/hal+json")
 public class ProductController {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
@@ -46,7 +46,8 @@ public class ProductController {
 
     @GetMapping("/")
     public Resources<Resource<Product>> getAllProduct() {
-        List<Resource<Product>> products = productService.findAllProducts().stream()
+        List<Resource<Product>> products = productService.findAllProducts()
+                .stream()
                 .map(productResourceAssembler::toResource)
                 .collect(Collectors.toList());
         if (products.isEmpty()) {
@@ -71,7 +72,7 @@ public class ProductController {
 
     @PostMapping("/")
     public ResponseEntity<Resource<Product>> createProduct(@RequestBody Product product) {
-        Product createdProduct = productService.createProduct(product);
+        Product createdProduct = productService.updateProduct(product);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest().path("/{id}")
                 .buildAndExpand(createdProduct.getProductId()).toUri();
@@ -86,15 +87,14 @@ public class ProductController {
         Product updateProduct = productService.findByProductId(id);
         if (updateProduct == null) {
             throw new ResourceNotFoundException("Product", "id", id);
-        } else {
-            if (product.getName() != null) {
-                updateProduct.setName(product.getName());
-            }
-            updateProduct.setPreis(product.getPreis());
-            productService.updateProduct(updateProduct);
-            LOGGER.debug("Successful updated Product with id: [{}]{}", id, updateProduct);
-            return ResponseEntity.ok(productResourceAssembler.toResource(updateProduct));
         }
+        if (product.getName() != null) {
+            updateProduct.setName(product.getName());
+        }
+        updateProduct.setPreis(product.getPreis());
+        productService.updateProduct(updateProduct);
+        LOGGER.debug("Successful updated Product with id: [{}]{}", id, updateProduct);
+        return ResponseEntity.ok(productResourceAssembler.toResource(updateProduct));
     }
 
     @DeleteMapping("/{id}")

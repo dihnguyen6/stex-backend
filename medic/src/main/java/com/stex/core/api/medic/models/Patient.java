@@ -1,23 +1,21 @@
 package com.stex.core.api.medic.models;
 
-import com.stex.core.api.tools.Tools;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.stex.core.api.tools.ObjectID_Serializer;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.hateoas.ResourceSupport;
 
 import java.util.List;
 
 @Document(collection = "patients")
-public class Patient {
+public class Patient extends ResourceSupport {
     @Id
     private ObjectId id;
 
-    @DBRef
     private Information information;
-
-    @DBRef
-    private List<Diagnose> diagnoses;
 
     private String firstName;
 
@@ -26,18 +24,12 @@ public class Patient {
     public Patient() {
     }
 
-    public Patient(Information information, List<Diagnose> diagnoses, String firstName, String lastName) {
-        this.information = information;
-        this.diagnoses = diagnoses;
-        this.firstName = firstName;
-        this.lastName = lastName;
-    }
-
-    public ObjectId getId() {
+    @JsonSerialize(using = ObjectID_Serializer.class)
+    public ObjectId getPatientId() {
         return id;
     }
 
-    public void setId(ObjectId id) {
+    public void setPatientId(ObjectId id) {
         this.id = id;
     }
 
@@ -47,14 +39,6 @@ public class Patient {
 
     public void setInformation(Information information) {
         this.information = information;
-    }
-
-    public List<Diagnose> getDiagnoses() {
-        return diagnoses;
-    }
-
-    public void setDiagnoses(List<Diagnose> diagnoses) {
-        this.diagnoses = diagnoses;
     }
 
     public String getFirstName() {
@@ -75,6 +59,11 @@ public class Patient {
 
     @Override
     public String toString() {
-        return Tools.toString(this);
+        return "Patient{" +
+                "id=" + id +
+                ", information=" + information +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                '}';
     }
 }

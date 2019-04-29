@@ -14,7 +14,5 @@ public interface PatientService {
 
     List<Patient> findAllByFirstNameAndLastName(String firstName, String lastName);
 
-    Patient createPatient(Patient patient);
-
-    void updatePatient(Patient patient);
+    Patient updatePatient(Patient patient);
 }

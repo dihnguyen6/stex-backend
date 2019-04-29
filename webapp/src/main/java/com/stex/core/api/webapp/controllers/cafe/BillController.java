@@ -4,10 +4,10 @@ import com.stex.core.api.cafe.models.Bill;
 import com.stex.core.api.cafe.models.Order;
 import com.stex.core.api.cafe.services.BillService;
 import com.stex.core.api.cafe.services.OrderService;
-import com.stex.core.api.tools.ExceptionHandler.ResourceNotAvailableException;
+import com.stex.core.api.tools.ExceptionHandler.ResourceForbiddenException;
 import com.stex.core.api.tools.ExceptionHandler.ResourceNotFoundException;
 import com.stex.core.api.tools.ExceptionHandler.ResourceTableNotAvailableException;
-import com.stex.core.api.tools.Status;
+import com.stex.core.api.tools.constants.Status;
 import com.stex.core.api.webapp.ResourcesAssembler.CafeResource.BillResourceAssembler;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
@@ -126,13 +126,13 @@ public class BillController {
     @PostMapping("/")
     public ResponseEntity<Resource<Bill>> createBill(@RequestBody Bill bill) {
         if (isNotAvailableTable(bill.getTable())) {
-            throw new ResourceNotAvailableException("Bill", "table", bill.getTable());
+            throw new ResourceForbiddenException("Bill", "table", bill.getTable());
         }
         bill.setUpdatedAt(new Date());
         bill.setCreatedAt(new Date());
         bill.setStatus(Status.IN_PROGRESS);
         bill.setOrders(new ArrayList<>());
-        Bill createBill = billService.createBill(bill);
+        Bill createBill = billService.updateBill(bill);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest().path("/{id}")
                 .buildAndExpand(createBill.getBillId()).toUri();
@@ -149,7 +149,7 @@ public class BillController {
             throw new ResourceNotFoundException("Bill", "id", id);
         }
         Order createOrder = orderService.findByOrderId(orderId);
-        List<Order> orders = new ArrayList<>();
+        List<Order> orders = updateBill.getOrders();
         orders.add(createOrder);
         updateBill.setOrders(orders);
         updateBill.setUpdatedAt(new Date());
@@ -168,7 +168,7 @@ public class BillController {
             throw new ResourceTableNotAvailableException("Bill", "status", updateBill.getStatus());
         }
         if (isNotAvailableTable(table)) {
-            throw new ResourceNotAvailableException("Bill", "table", table);
+            throw new ResourceForbiddenException("Bill", "table", table);
         }
         updateBill.setUpdatedAt(new Date());
         updateBill.setTable(table);
@@ -177,43 +177,29 @@ public class BillController {
         return ResponseEntity.ok(billResourceAssembler.toResource(updateBill));
     }
 
-    @PutMapping("/{id}/checkout")
-    public HttpEntity<Bill> checkoutBill(@PathVariable ObjectId id) {
-        Bill checkoutBill = billService.findByBillId(id);
-        if (checkoutBill == null) {
+    @PutMapping("/{id}/{status}")
+    public ResponseEntity<ResourceSupport> updateStatusBill(@PathVariable ObjectId id, @PathVariable String status) {
+        Bill bill = billService.findByBillId(id);
+        if (bill == null) {
             throw new ResourceNotFoundException("Bill", "id", id);
         }
-        if (isNotAvailableToUpdate(checkoutBill)) {
-            throw new ResourceNotAvailableException("Bill", "status", checkoutBill.getStatus());
+        if (isNotAvailableToUpdate(bill)) {
+            throw new ResourceForbiddenException("Bill", "status", bill.getStatus());
         }
-
-        double preis = 0;
-        for (Order order : checkoutBill.getOrders()) {
-            preis += order.getQuantity() * order.getProduct().getPreis();
+        bill.setUpdatedAt(new Date());
+        if (status.equals("complete")) {
+            double preis = 0;
+            for (Order order : bill.getOrders()) {
+                preis += order.getQuantity() * order.getProduct().getPreis();
+            }
+            bill.setPreis(preis);
+            bill.setStatus(Status.COMPLETED);
+        } else if (status.equals("cancel")) {
+            bill.setStatus(Status.CANCELLED);
         }
-        checkoutBill.setPreis(preis);
-        checkoutBill.setStatus(Status.COMPLETED);
-        checkoutBill.setUpdatedAt(new Date());
-        billService.updateBill(checkoutBill);
-        LOGGER.debug("Successful checkout Bill: [{}]  -> [{}]", checkoutBill.getBillId(), checkoutBill.getPreis());
-        return new ResponseEntity<>(checkoutBill, HttpStatus.OK);
-
-    }
-
-    @PutMapping("/{id}/cancel")
-    public ResponseEntity<Resource<Bill>> cancelBill(@PathVariable ObjectId id) {
-        Bill cancelBill = billService.findByBillId(id);
-        if (cancelBill == null) {
-            throw new ResourceNotFoundException("Bill", "id", id);
-        }
-        if (isNotAvailableToUpdate(cancelBill)) {
-            throw new ResourceNotAvailableException("Bill", "status", cancelBill.getStatus());
-        }
-        cancelBill.setUpdatedAt(new Date());
-        cancelBill.setStatus(Status.CANCELLED);
-        billService.updateBill(cancelBill);
-        LOGGER.debug("Successful cancel Bill: {}", cancelBill);
-        return ResponseEntity.ok(billResourceAssembler.toResource(cancelBill));
+        LOGGER.debug(bill.toString());
+        billService.updateBill(bill);
+        return ResponseEntity.ok(billResourceAssembler.toResource(bill));
     }
 
     private boolean isNotAvailableToUpdate(Bill bill) {

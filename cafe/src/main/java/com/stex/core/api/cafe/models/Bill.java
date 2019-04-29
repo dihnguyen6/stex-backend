@@ -2,7 +2,7 @@ package com.stex.core.api.cafe.models;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.stex.core.api.tools.ObjectID_Serializer;
-import com.stex.core.api.tools.Status;
+import com.stex.core.api.tools.constants.Status;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;

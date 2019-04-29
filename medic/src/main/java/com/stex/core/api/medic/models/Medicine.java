@@ -1,12 +1,15 @@
 package com.stex.core.api.medic.models;
 
-import com.stex.core.api.tools.Tools;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.stex.core.api.tools.ObjectID_Serializer;
+import com.stex.core.api.tools.constants.MedicineType;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.hateoas.ResourceSupport;
 
 @Document(collection = "medicines")
-public class Medicine {
+public class Medicine extends ResourceSupport {
 
     @Id
     private ObjectId id;
@@ -19,18 +22,17 @@ public class Medicine {
 
     private String manufacture;
 
-    public Medicine(String name, String description, int content, String manufacture) {
-        this.name = name;
-        this.description = description;
-        this.content = content;
-        this.manufacture = manufacture;
+    private MedicineType type;
+
+    public Medicine() {
     }
 
-    public ObjectId getId() {
+    @JsonSerialize(using = ObjectID_Serializer.class)
+    public ObjectId getMedicineId() {
         return id;
     }
 
-    public void setId(ObjectId id) {
+    public void setMedicineId(ObjectId id) {
         this.id = id;
     }
 
@@ -66,8 +68,23 @@ public class Medicine {
         this.manufacture = manufacture;
     }
 
+    public MedicineType getType() {
+        return type;
+    }
+
+    public void setType(MedicineType type) {
+        this.type = type;
+    }
+
     @Override
     public String toString() {
-        return Tools.toString(this);
+        return "Medicine{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", content=" + content +
+                ", manufacture='" + manufacture + '\'' +
+                ", type=" + type +
+                '}';
     }
 }

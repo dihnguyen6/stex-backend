@@ -12,11 +12,7 @@ public interface DiagnoseService {
 
     List<Diagnose> findAllDiagnoses();
 
-    List<Diagnose> findAllByPatientId(ObjectId id);
+    List<Diagnose> findAllByPatientId(ObjectId patientId);
 
-    Diagnose createDiagnose(Diagnose diagnose);
-
-    void updateDiagnose(Diagnose diagnose);
-
-    void completeDiagnose(ObjectId id);
+    Diagnose updateDiagnose(Diagnose diagnose);
 }

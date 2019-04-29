@@ -1,22 +1,22 @@
 package com.stex.core.api.medic.models;
 
-import com.stex.core.api.tools.Status;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.stex.core.api.tools.ObjectID_Serializer;
+import com.stex.core.api.tools.constants.Status;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.hateoas.ResourceSupport;
 
 import java.util.Date;
 
 @Document(collection = "receptions")
-public class Reception {
+public class Reception extends ResourceSupport {
 
     @Id
     private ObjectId id;
-
-    @DBRef
-    private Diagnose diagnose;
 
     @DBRef
     private Medicine medicine;
@@ -25,38 +25,24 @@ public class Reception {
 
     private String description;
 
+    private Status status;
+
     @DateTimeFormat
     private Date createdAt;
 
     @DateTimeFormat
     private Date updatedAt;
 
-    private Status status;
-
     public Reception() {
     }
 
-    public Reception(Diagnose diagnose, Medicine medicine, int quantity, String description) {
-        this.diagnose = diagnose;
-        this.medicine = medicine;
-        this.quantity = quantity;
-        this.description = description;
-    }
-
-    public ObjectId getId() {
+    @JsonSerialize(using = ObjectID_Serializer.class)
+    public ObjectId getReceptionId() {
         return id;
     }
 
-    public void setId(ObjectId id) {
+    public void setReceptionId(ObjectId id) {
         this.id = id;
-    }
-
-    public Diagnose getDiagnose() {
-        return diagnose;
-    }
-
-    public void setDiagnose(Diagnose diagnose) {
-        this.diagnose = diagnose;
     }
 
     public Medicine getMedicine() {
@@ -105,5 +91,18 @@ public class Reception {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    @Override
+    public String toString() {
+        return "Reception{" +
+                "id=" + id +
+                ", medicine=" + medicine +
+                ", quantity=" + quantity +
+                ", status=" + status +
+                ", description='" + description + '\'' +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
     }
 }

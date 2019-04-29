@@ -19,10 +19,6 @@ public class ProductServiceImpl implements ProductService {
         this.productRepository = productRepository;
     }
 
-    public Product createProduct(Product product) {
-        return productRepository.save(product);
-    }
-
     public Product updateProduct(Product product) {
         return productRepository.save(product);
     }

@@ -12,9 +12,6 @@ public interface ReceptionService {
 
     List<Reception> findAllReceptions();
 
-    Reception createReception(Reception reception);
+    Reception updateReception(Reception reception);
 
-    void updateReception(Reception reception);
-
-    void completeReception(ObjectId id);
 }

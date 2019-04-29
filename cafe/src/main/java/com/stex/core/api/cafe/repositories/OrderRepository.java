@@ -1,7 +1,7 @@
 package com.stex.core.api.cafe.repositories;
 
 import com.stex.core.api.cafe.models.Order;
-import com.stex.core.api.tools.Status;
+import com.stex.core.api.tools.constants.Status;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;

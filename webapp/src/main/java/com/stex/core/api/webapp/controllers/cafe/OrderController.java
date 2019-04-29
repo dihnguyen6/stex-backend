@@ -2,9 +2,10 @@ package com.stex.core.api.webapp.controllers.cafe;
 
 import com.stex.core.api.cafe.models.Order;
 import com.stex.core.api.cafe.services.OrderService;
-import com.stex.core.api.tools.ExceptionHandler.ResourceTableNotAvailableException;
+import com.stex.core.api.tools.ExceptionHandler.ResourceForbiddenException;
 import com.stex.core.api.tools.ExceptionHandler.ResourceNotFoundException;
-import com.stex.core.api.tools.Status;
+import com.stex.core.api.tools.ExceptionHandler.ResourceTableNotAvailableException;
+import com.stex.core.api.tools.constants.Status;
 import com.stex.core.api.webapp.ResourcesAssembler.CafeResource.OrderResourceAssembler;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
@@ -13,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.ResourceSupport;
 import org.springframework.hateoas.Resources;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -116,7 +116,7 @@ public class OrderController {
         order.setStatus(Status.IN_PROGRESS);
         order.setCreatedAt(new Date());
         order.setUpdatedAt(new Date());
-        Order createdOrder = orderService.createOrder(order);
+        Order createdOrder = orderService.updateOrder(order);
         LOGGER.debug("Successful created Order:{}", createdOrder);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest().path("/{id}")
@@ -145,39 +145,23 @@ public class OrderController {
         }
     }
 
-    @PutMapping("/{id}/complete")
-    public ResponseEntity<ResourceSupport> completeOrder(@PathVariable ObjectId id) {
-        Order completeOrder = orderService.findByOrderId(id);
-        if (completeOrder == null) {
+    @PutMapping("/{id}/{status}")
+    public ResponseEntity<ResourceSupport> updateStatusOrder(@PathVariable ObjectId id, @PathVariable String status) {
+        Order order = orderService.findByOrderId(id);
+        if (order == null) {
             throw new ResourceNotFoundException("Order", "id", id);
-        } else {
-            if (completeOrder.getStatus() != Status.IN_PROGRESS) {
-                throw new ResourceTableNotAvailableException("Order", "status", completeOrder.getStatus());
-            }
-            completeOrder.setUpdatedAt(new Date());
-            completeOrder.setStatus(Status.COMPLETED);
-            orderService.updateOrder(completeOrder);
-            LOGGER.debug("Successful completed Order with [id: {}]{}", id, completeOrder);
-            return ResponseEntity.ok(orderResourceAssembler.toResource(completeOrder));
-
         }
-    }
-
-    @PutMapping("/{id}/cancel")
-    public ResponseEntity<ResourceSupport> cancelOrder(@PathVariable ObjectId id) {
-        Order cancelOrder = orderService.findByOrderId(id);
-        if (cancelOrder == null) {
-            LOGGER.debug("Cannot found Order [id: {}]", id);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } else {
-            if (cancelOrder.getStatus() != Status.IN_PROGRESS) {
-                throw new ResourceTableNotAvailableException("Order", "status", cancelOrder.getStatus());
-            }
-            cancelOrder.setUpdatedAt(new Date());
-            cancelOrder.setStatus(Status.CANCELLED);
-            orderService.updateOrder(cancelOrder);
-            LOGGER.debug("Successful cancelled Order with [id: {}]{}", id, cancelOrder);
-            return ResponseEntity.ok(orderResourceAssembler.toResource(cancelOrder));
+        if (order.getStatus() != Status.IN_PROGRESS) {
+            throw new ResourceForbiddenException("Order", "status", order.getStatus());
         }
+        order.setUpdatedAt(new Date());
+        if (status.equals("complete")) {
+            order.setStatus(Status.COMPLETED);
+        } else if (status.equals("cancel")) {
+            order.setStatus(Status.CANCELLED);
+        }
+        orderService.updateOrder(order);
+        LOGGER.debug("Successful {} Order with [id: {}]{}", status, id, order);
+        return ResponseEntity.ok(orderResourceAssembler.toResource(order));
     }
 }
