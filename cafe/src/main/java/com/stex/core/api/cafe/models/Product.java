@@ -46,10 +46,10 @@ public class Product extends ResourceSupport {
 
     @Override
     public String toString() {
-        return "\nProduct {\n" +
-                "\t\"id\": " + id +
-                ",\n\t\"name\": '" + name + '\'' +
-                ",\n\t\"preis\": " + preis +
-                "\n}";
+        return "Product{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", preis=" + preis +
+                '}';
     }
 }

@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.ResourceSupport;
 import org.springframework.hateoas.Resources;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,18 +49,23 @@ public class ProductController {
         List<Resource<Product>> products = productService.findAllProducts().stream()
                 .map(productResourceAssembler::toResource)
                 .collect(Collectors.toList());
+        if (products.isEmpty()) {
+            throw new ResourceNotFoundException("Products", null, null);
+        }
+        LOGGER.debug(productService.findAllProducts().toString());
         return new Resources<>(products,
                 linkTo(methodOn(ProductController.class).getAllProduct()).withSelfRel());
     }
 
     @GetMapping("/{id}")
-    public HttpEntity<?> getProductById(@PathVariable ObjectId id) {
+    public ResponseEntity<Resource<Product>> getProductById(@PathVariable ObjectId id) {
         Product product = productService.findByProductId(id);
         if (product == null) {
             throw new ResourceNotFoundException("Product", "id", id);
         }
-        return ResponseEntity
-                .created(linkTo(methodOn(ProductController.class).getProductById(product.getProductId())).toUri())
+        LOGGER.debug(product.toString());
+        return ResponseEntity.created(linkTo(methodOn(ProductController.class)
+                .getProductById(id)).toUri())
                 .body(productResourceAssembler.toResource(product));
     }
 
@@ -71,7 +75,7 @@ public class ProductController {
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest().path("/{id}")
                 .buildAndExpand(createdProduct.getProductId()).toUri();
-        LOGGER.debug("Successful created Product:\n{}", createdProduct);
+        LOGGER.debug("Successful created Product:{}", createdProduct);
         return ResponseEntity
                 .created(location)
                 .body(productResourceAssembler.toResource(createdProduct));
@@ -80,7 +84,6 @@ public class ProductController {
     @PutMapping("/{id}")
     public ResponseEntity<ResourceSupport> updateProduct(@PathVariable ObjectId id, @RequestBody Product product) {
         Product updateProduct = productService.findByProductId(id);
-
         if (updateProduct == null) {
             throw new ResourceNotFoundException("Product", "id", id);
         } else {
@@ -89,7 +92,7 @@ public class ProductController {
             }
             updateProduct.setPreis(product.getPreis());
             productService.updateProduct(updateProduct);
-            LOGGER.debug("Successful updated Product with id: [{}]\n{}", id, updateProduct);
+            LOGGER.debug("Successful updated Product with id: [{}]{}", id, updateProduct);
             return ResponseEntity.ok(productResourceAssembler.toResource(updateProduct));
         }
     }

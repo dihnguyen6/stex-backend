@@ -2,12 +2,17 @@ package com.stex.core.api.webapp.controllers.cafe;
 
 import com.stex.core.api.cafe.models.Order;
 import com.stex.core.api.cafe.services.OrderService;
+import com.stex.core.api.tools.ExceptionHandler.ResourceTableNotAvailableException;
+import com.stex.core.api.tools.ExceptionHandler.ResourceNotFoundException;
 import com.stex.core.api.tools.Status;
+import com.stex.core.api.webapp.ResourcesAssembler.CafeResource.OrderResourceAssembler;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.ResourceSupport;
+import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,82 +27,109 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.core.DummyInvocationUtils.methodOn;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 
 @RestController
-@RequestMapping("/api/orders")
+@RequestMapping(value = "/api/orders", produces = "application/hal+json")
 public class OrderController {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
     private final OrderService orderService;
+    private final OrderResourceAssembler orderResourceAssembler;
 
-    public OrderController(OrderService orderService) {
+    @Autowired
+    public OrderController(OrderService orderService, OrderResourceAssembler orderResourceAssembler) {
         this.orderService = orderService;
+        this.orderResourceAssembler = orderResourceAssembler;
     }
 
     @GetMapping("/")
-    public HttpEntity<List<Order>> getAllOrders() {
-        List<Order> orders = orderService.findAllOrders();
+    public Resources<Resource<Order>> getAllOrders() {
+        List<Resource<Order>> orders = orderService.findAllOrders().stream()
+                .map(orderResourceAssembler::toResource)
+                .collect(Collectors.toList());
         if (orders.isEmpty()) {
-            LOGGER.debug("Order's list is empty.");
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } else {
-            addHateoasToListOrders(orders);
-            LOGGER.debug("Loading all Orders... {}", orders);
-            return new ResponseEntity<>(orders, HttpStatus.OK);
+            throw new ResourceNotFoundException("Orders", null, null);
         }
+        LOGGER.debug(orderService.findAllOrders().toString());
+        return new Resources<>(orders,
+                linkTo(methodOn(OrderController.class).getAllOrders()).withSelfRel());
     }
 
     @GetMapping("/{id}")
-    public HttpEntity<Order> getOrderById(@PathVariable ObjectId id) {
+    public ResponseEntity<Resource<Order>> getOrderById(@PathVariable ObjectId id) {
         Order order = orderService.findByOrderId(id);
         if (order == null) {
-            LOGGER.debug("Cannot found Order [id: {}]", id);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } else {
-            addHateoasToOrder(order);
-            LOGGER.debug("Successful found Order [id: {}]{}", id, order);
-            return new ResponseEntity<>(order, HttpStatus.OK);
+            throw new ResourceNotFoundException("Order", "id", id);
         }
+        LOGGER.debug(order.toString());
+        return ResponseEntity.created(linkTo(methodOn(OrderController.class)
+                .getOrderById(id)).toUri())
+                .body(orderResourceAssembler.toResource(order));
     }
 
-    @GetMapping("/status={status}")
-    public HttpEntity<List<Order>> getAllOrdersByStatus(@PathVariable Status status) {
-        List<Order> orders = orderService.findByOrderStatus(status);
-        if (orders == null) {
-            LOGGER.debug("Order' list that are in the {} status is empty.", status);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } else {
-            addHateoasToListOrders(orders);
-            LOGGER.debug("Loading all Orders that are in [{}} status.{}", status, orders);
-            return new ResponseEntity<>(orders, HttpStatus.OK);
+    @GetMapping("/progress")
+    public Resources<Resource<Order>> getProgressOrders() {
+        List<Resource<Order>> progressOrders = orderService.findByOrderStatus(Status.IN_PROGRESS).stream()
+                .map(orderResourceAssembler::toResource)
+                .collect(Collectors.toList());
+        if (progressOrders.isEmpty()) {
+            throw new ResourceNotFoundException("Orders", "status", Status.IN_PROGRESS);
         }
+        LOGGER.debug(progressOrders.toString());
+        return new Resources<>(progressOrders,
+                linkTo(methodOn(OrderController.class).getProgressOrders()).withSelfRel());
+    }
+
+    @GetMapping("/complete")
+    public Resources<Resource<Order>> getCompleteOrders() {
+        List<Resource<Order>> completeOrders = orderService.findByOrderStatus(Status.COMPLETED).stream()
+                .map(orderResourceAssembler::toResource)
+                .collect(Collectors.toList());
+        if (completeOrders.isEmpty()) {
+            throw new ResourceNotFoundException("Orders", "status", Status.COMPLETED);
+        }
+        LOGGER.debug(completeOrders.toString());
+        return new Resources<>(completeOrders,
+                linkTo(methodOn(OrderController.class).getProgressOrders()).withSelfRel());
+    }
+
+    @GetMapping("/cancel")
+    public Resources<Resource<Order>> getCancelOrders() {
+        List<Resource<Order>> cancelOrders = orderService.findByOrderStatus(Status.COMPLETED).stream()
+                .map(orderResourceAssembler::toResource)
+                .collect(Collectors.toList());
+        if (cancelOrders.isEmpty()) {
+            throw new ResourceNotFoundException("Orders", "status", Status.CANCELLED);
+        }
+        LOGGER.debug(cancelOrders.toString());
+        return new Resources<>(cancelOrders,
+                linkTo(methodOn(OrderController.class).getProgressOrders()).withSelfRel());
     }
 
     @PostMapping("/")
-    public HttpEntity<Order> createOrder(@RequestBody Order order) {
+    public ResponseEntity<Resource<Order>> createOrder(@RequestBody Order order) {
         order.setStatus(Status.IN_PROGRESS);
         order.setCreatedAt(new Date());
         order.setUpdatedAt(new Date());
         Order createdOrder = orderService.createOrder(order);
-        LOGGER.debug("Successful created Order:{}", orderService.findByOrderId(createdOrder.getOrderId()));
+        LOGGER.debug("Successful created Order:{}", createdOrder);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest().path("/{id}")
                 .buildAndExpand(createdOrder.getOrderId()).toUri();
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setLocation(location);
-        return new ResponseEntity<>(httpHeaders, HttpStatus.CREATED);
+        return ResponseEntity.created(location)
+                .body(orderResourceAssembler.toResource(createdOrder));
     }
 
     @PutMapping("/{id}")
-    public HttpEntity<Order> updateOrder(@PathVariable ObjectId id, @RequestBody Order order) {
+    public ResponseEntity<ResourceSupport> updateOrder(@PathVariable ObjectId id, @RequestBody Order order) {
         Order updateOrder = orderService.findByOrderId(id);
         if (updateOrder == null) {
-            LOGGER.debug("Cannot found Order [id: {}]", id);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            throw new ResourceNotFoundException("Order", "id", id);
         } else {
             order.setUpdatedAt(new Date());
             if (order.getDescription() != null) {
@@ -106,72 +138,46 @@ public class OrderController {
             if (order.getProduct() != null) {
                 updateOrder.setProduct(order.getProduct());
             }
-            //TODO check if quantity is null
             updateOrder.setQuantity(order.getQuantity());
             orderService.updateOrder(order);
-            addHateoasToOrder(updateOrder);
             LOGGER.debug("Successful updated Order with id: [{}]{}", id, updateOrder);
-            return new ResponseEntity<>(updateOrder, HttpStatus.OK);
+            return ResponseEntity.ok(orderResourceAssembler.toResource(updateOrder));
         }
     }
 
-    @PutMapping("/{id}/completed")
-    public HttpEntity<Order> completeOrder(@PathVariable ObjectId id) {
+    @PutMapping("/{id}/complete")
+    public ResponseEntity<ResourceSupport> completeOrder(@PathVariable ObjectId id) {
         Order completeOrder = orderService.findByOrderId(id);
         if (completeOrder == null) {
-            LOGGER.debug("Cannot found Order [id: {}]", id);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            throw new ResourceNotFoundException("Order", "id", id);
         } else {
             if (completeOrder.getStatus() != Status.IN_PROGRESS) {
-                LOGGER.debug("Action is not allowed." +
-                        "Cannot change Order that is in {} status.", completeOrder.getStatus());
-                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-            } else {
-                completeOrder.setUpdatedAt(new Date());
-                completeOrder.setStatus(Status.COMPLETED);
-                orderService.updateOrder(completeOrder);
-                addHateoasToOrder(completeOrder);
-                LOGGER.debug("Successful completed Order with [id: {}]{}", id, completeOrder);
-                return new ResponseEntity<>(completeOrder, HttpStatus.OK);
+                throw new ResourceTableNotAvailableException("Order", "status", completeOrder.getStatus());
             }
+            completeOrder.setUpdatedAt(new Date());
+            completeOrder.setStatus(Status.COMPLETED);
+            orderService.updateOrder(completeOrder);
+            LOGGER.debug("Successful completed Order with [id: {}]{}", id, completeOrder);
+            return ResponseEntity.ok(orderResourceAssembler.toResource(completeOrder));
+
         }
     }
 
-    @PutMapping("/{id}?cancelled")
-    public HttpEntity<Order> cancelOrder(@PathVariable ObjectId id) {
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<ResourceSupport> cancelOrder(@PathVariable ObjectId id) {
         Order cancelOrder = orderService.findByOrderId(id);
         if (cancelOrder == null) {
             LOGGER.debug("Cannot found Order [id: {}]", id);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } else {
             if (cancelOrder.getStatus() != Status.IN_PROGRESS) {
-                LOGGER.debug("Action is not allowed." +
-                        "Cannot change Order that is in {} status.", cancelOrder.getStatus());
-                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-            } else {
-                cancelOrder.setUpdatedAt(new Date());
-                cancelOrder.setStatus(Status.CANCELLED);
-                orderService.updateOrder(cancelOrder);
-                addHateoasToOrder(cancelOrder);
-                LOGGER.debug("Successful cancelled Order with [id: {}]{}", id, cancelOrder);
-                return new ResponseEntity<>(cancelOrder, HttpStatus.OK);
+                throw new ResourceTableNotAvailableException("Order", "status", cancelOrder.getStatus());
             }
+            cancelOrder.setUpdatedAt(new Date());
+            cancelOrder.setStatus(Status.CANCELLED);
+            orderService.updateOrder(cancelOrder);
+            LOGGER.debug("Successful cancelled Order with [id: {}]{}", id, cancelOrder);
+            return ResponseEntity.ok(orderResourceAssembler.toResource(cancelOrder));
         }
-    }
-
-    private void addHateoasToListOrders(List<Order> orders) {
-        orders.forEach(this::addHateoasToOrder);
-    }
-
-    private void addHateoasToOrder(Order order) {
-        order.add(linkTo(methodOn(OrderController.class)
-                .getAllOrders())
-                .withRel("orders"));
-        order.add(linkTo(methodOn(OrderController.class)
-                .getOrderById(order.getOrderId()))
-                .withSelfRel());
-        order.getProduct().add(linkTo(methodOn(ProductController.class)
-                .getProductById(order.getProduct().getProductId()))
-                .withSelfRel());
     }
 }

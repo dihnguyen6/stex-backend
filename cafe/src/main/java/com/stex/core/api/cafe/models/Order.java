@@ -97,15 +97,14 @@ public class Order extends ResourceSupport {
 
     @Override
     public String toString() {
-        return "\nOrder {\n" +
-                "\t\"id\": " + id +
-                ",\n\t\"product\": " + product +
-                //",\n\t\"bill\": " + bill +
-                ",\n\t\"quantity\": " + quantity +
-                ",\n\t\"status\": " + status +
-                ",\n\t\"description\": '" + description + '\'' +
-                ",\n\t\"createdAt\": " + createdAt +
-                ",\n\t\"updatedAt\": " + updatedAt +
-                "\n}";
+        return "Order{" +
+                "id=" + id +
+                ", product=" + product +
+                ", quantity=" + quantity +
+                ", status=" + status +
+                ", description='" + description + '\'' +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
     }
 }

@@ -12,7 +12,6 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 @Component
 public class ProductResourceAssembler implements ResourceAssembler<Product, Resource<Product>> {
 
-
     @Override
     public Resource<Product> toResource(Product p) {
         return new Resource<>(p,

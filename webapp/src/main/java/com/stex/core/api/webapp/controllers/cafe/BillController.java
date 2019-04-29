@@ -4,11 +4,18 @@ import com.stex.core.api.cafe.models.Bill;
 import com.stex.core.api.cafe.models.Order;
 import com.stex.core.api.cafe.services.BillService;
 import com.stex.core.api.cafe.services.OrderService;
+import com.stex.core.api.tools.ExceptionHandler.ResourceNotAvailableException;
+import com.stex.core.api.tools.ExceptionHandler.ResourceNotFoundException;
+import com.stex.core.api.tools.ExceptionHandler.ResourceTableNotAvailableException;
 import com.stex.core.api.tools.Status;
+import com.stex.core.api.webapp.ResourcesAssembler.CafeResource.BillResourceAssembler;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.ResourceSupport;
+import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +26,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.core.DummyInvocationUtils.methodOn;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
@@ -33,217 +43,184 @@ public class BillController {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
-    private BillService billService;
+    private final BillService billService;
+
+    private final OrderService orderService;
+
+    private final BillResourceAssembler billResourceAssembler;
 
     @Autowired
-    private OrderService orderService;
-
+    public BillController(BillService billService, OrderService orderService, BillResourceAssembler billResourceAssembler) {
+        this.billService = billService;
+        this.orderService = orderService;
+        this.billResourceAssembler = billResourceAssembler;
+    }
 
     @GetMapping("/")
-    public HttpEntity<List<Bill>> getAllBills() {
-        List<Bill> bills = billService.findAllBills();
+    public Resources<Resource<Bill>> getAllBills() {
+        List<Resource<Bill>> bills = billService.findAllBills().stream()
+                .map(billResourceAssembler::toResource)
+                .collect(Collectors.toList());
         if (bills.isEmpty()) {
-            LOGGER.debug("Bill's list is empty.");
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } else {
-            addHateoasToList(bills);
-            LOGGER.debug("Successful found Bills: {}", bills);
-            return new ResponseEntity<>(bills, HttpStatus.OK);
+            throw new ResourceNotFoundException("Bills", null, null);
         }
+        LOGGER.debug(billService.findAllBills().toString());
+        return new Resources<>(bills,
+                linkTo(methodOn(BillController.class).getAllBills()).withSelfRel());
     }
 
     @GetMapping("/{id}")
-    public HttpEntity<Bill> getBillById(@PathVariable ObjectId id) {
+    public ResponseEntity<Resource<Bill>> getBillById(@PathVariable ObjectId id) {
         Bill bill = billService.findByBillId(id);
         if (bill == null) {
-            LOGGER.debug("Cannot found Bill [id: {}]", id);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } else {
-            addHateoasToBill(bill);
-            LOGGER.debug("Successful found Bill: {}", bill);
-            return new ResponseEntity<>(bill, HttpStatus.OK);
+            throw new ResourceNotFoundException("Bill", "id", id);
         }
+        LOGGER.debug(bill.toString());
+        return ResponseEntity.created(linkTo(methodOn(BillController.class)
+                .getBillById(id)).toUri())
+                .body(billResourceAssembler.toResource(bill));
     }
 
     @GetMapping("/progress")
-    public HttpEntity<List<Bill>> getBillsInProgress() {
-        List<Bill> bills = billService.findAllByBillStatus(Status.IN_PROGRESS);
+    public Resources<Resource<Bill>> getBillsInProgress() {
+        List<Resource<Bill>> bills = billService.findAllByBillStatus(Status.IN_PROGRESS)
+                .stream()
+                .map(billResourceAssembler::toResource)
+                .collect(Collectors.toList());
         if (bills.isEmpty()) {
-            LOGGER.debug("List of bills that are in the {} status, is empty.", Status.IN_PROGRESS);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } else {
-            addHateoasToList(bills);
-            LOGGER.debug("Successful found {} bills: {}", Status.IN_PROGRESS, bills);
-            return new ResponseEntity<>(bills, HttpStatus.OK);
+            throw new ResourceNotFoundException("Bills", "status", Status.IN_PROGRESS);
         }
+        LOGGER.debug(billService.findAllByBillStatus(Status.IN_PROGRESS).toString());
+        return new Resources<>(bills,
+                linkTo(methodOn(BillController.class).getBillsInProgress()).withSelfRel());
     }
 
     @GetMapping("/completed")
-    public HttpEntity<List<Bill>> getBillsCompleted() {
-        List<Bill> bills = billService.findAllByBillStatus(Status.COMPLETED);
+    public Resources<Resource<Bill>> getBillsCompleted() {
+        List<Resource<Bill>> bills = billService.findAllByBillStatus(Status.COMPLETED)
+                .stream()
+                .map(billResourceAssembler::toResource)
+                .collect(Collectors.toList());
         if (bills.isEmpty()) {
-            LOGGER.debug("List of bills that are in the {} status, is empty.", Status.COMPLETED);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } else {
-            addHateoasToList(bills);
-            LOGGER.debug("Successful found {} bills: {}", Status.COMPLETED, bills);
-            return new ResponseEntity<>(bills, HttpStatus.OK);
+            throw new ResourceNotFoundException("Bills", "status", Status.COMPLETED);
         }
+        LOGGER.debug(billService.findAllByBillStatus(Status.COMPLETED).toString());
+        return new Resources<>(bills,
+                linkTo(methodOn(BillController.class)).withSelfRel());
     }
 
     @GetMapping("/cancelled")
-    public HttpEntity<List<Bill>> getBillsCancel() {
-        List<Bill> bills = billService.findAllByBillStatus(Status.CANCELLED);
+    public Resources<Resource<Bill>> getBillsCancel() {
+        List<Resource<Bill>> bills = billService.findAllByBillStatus(Status.CANCELLED)
+                .stream()
+                .map(billResourceAssembler::toResource)
+                .collect(Collectors.toList());
         if (bills.isEmpty()) {
-            LOGGER.debug("List of bills that are in the {} status, is empty.", Status.CANCELLED);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } else {
-            addHateoasToList(bills);
-            LOGGER.debug("Successful found {} bills: {}", Status.CANCELLED, bills);
-            return new ResponseEntity<>(bills, HttpStatus.OK);
+            throw new ResourceNotFoundException("Bills", "status", Status.CANCELLED);
         }
+        LOGGER.debug(billService.findAllByBillStatus(Status.CANCELLED).toString());
+        return new Resources<>(bills,
+                linkTo(methodOn(BillController.class)).withSelfRel());
     }
 
     @PostMapping("/")
-    public HttpEntity<Bill> createBill(@RequestBody Bill bill) {
+    public ResponseEntity<Resource<Bill>> createBill(@RequestBody Bill bill) {
         if (isNotAvailableTable(bill.getTable())) {
-            LOGGER.debug("Table [{}] is not available now." +
-                    " Checkout then try again.", bill.getTable());
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        } else {
-            bill.setUpdatedAt(new Date());
-            bill.setCreatedAt(new Date());
-            bill.setStatus(Status.IN_PROGRESS);
-            Bill createBill = billService.createBill(bill);
-            addHateoasToBill(createBill);
-            LOGGER.debug("Successful created Bill: {}", createBill);
-            return new ResponseEntity<>(createBill, HttpStatus.OK);
+            throw new ResourceNotAvailableException("Bill", "table", bill.getTable());
         }
+        bill.setUpdatedAt(new Date());
+        bill.setCreatedAt(new Date());
+        bill.setStatus(Status.IN_PROGRESS);
+        bill.setOrders(new ArrayList<>());
+        Bill createBill = billService.createBill(bill);
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest().path("/{id}")
+                .buildAndExpand(createBill.getBillId()).toUri();
+        LOGGER.debug("Successful created Bill: {}", createBill);
+        return ResponseEntity.created(location)
+                .body(billResourceAssembler.toResource(createBill));
+
     }
 
-    @PutMapping("/{id}")
-    public HttpEntity<Bill> addOrderToBill(@PathVariable ObjectId id, @RequestBody Bill bill) {
+    @PutMapping("/{id}/add/{orderId}")
+    public ResponseEntity<ResourceSupport> addOrderToBill(@PathVariable ObjectId id, @PathVariable ObjectId orderId) {
         Bill updateBill = billService.findByBillId(id);
         if (updateBill == null) {
-            LOGGER.debug("Cannot found Bill with [id: {}]", id);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } else {
-            List<Order> orders = new ArrayList<>();
-            bill.getOrders().forEach(o -> orders
-                    .add(orderService.findByOrderId(o.getOrderId())));
-            updateBill.setOrders(orders);
-            updateBill.setUpdatedAt(new Date());
-            billService.updateBill(updateBill);
-            addHateoasToBill(updateBill);
-            LOGGER.debug("Successful updated Bill: {}", updateBill);
-            return new ResponseEntity<>(updateBill, HttpStatus.OK);
+            throw new ResourceNotFoundException("Bill", "id", id);
         }
+        Order createOrder = orderService.findByOrderId(orderId);
+        List<Order> orders = new ArrayList<>();
+        orders.add(createOrder);
+        updateBill.setOrders(orders);
+        updateBill.setUpdatedAt(new Date());
+        billService.updateBill(updateBill);
+        LOGGER.debug("Successful updated Bill: {}", updateBill);
+        return ResponseEntity.ok(billResourceAssembler.toResource(updateBill));
     }
 
     @PutMapping("/{id}/change/{table}")
-    public HttpEntity<Bill> changeTable(@PathVariable ObjectId id, @PathVariable int table) {
+    public ResponseEntity<Resource<Bill>> changeTable(@PathVariable ObjectId id, @PathVariable int table) {
         Bill updateBill = billService.findByBillId(id);
         if (updateBill == null) {
-            LOGGER.debug("Cannot found Bill [id: {}]", id);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } else {
-            if (isNotAvailableToUpdate(updateBill)) {
-                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-            }
-            if (isNotAvailableTable(table)) {
-                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-            }
-            updateBill.setUpdatedAt(new Date());
-            updateBill.setTable(table);
-            billService.updateBill(updateBill);
-            addHateoasToBill(updateBill);
-            LOGGER.debug("Successful change Table: {}", updateBill);
-            return new ResponseEntity<>(updateBill, HttpStatus.OK);
+            throw new ResourceNotFoundException("Bill", "id", id);
         }
+        if (isNotAvailableToUpdate(updateBill)) {
+            throw new ResourceTableNotAvailableException("Bill", "status", updateBill.getStatus());
+        }
+        if (isNotAvailableTable(table)) {
+            throw new ResourceNotAvailableException("Bill", "table", table);
+        }
+        updateBill.setUpdatedAt(new Date());
+        updateBill.setTable(table);
+        billService.updateBill(updateBill);
+        LOGGER.debug("Successful change Bill [{}] to Table: {}", updateBill.getBillId(), table);
+        return ResponseEntity.ok(billResourceAssembler.toResource(updateBill));
     }
 
     @PutMapping("/{id}/checkout")
     public HttpEntity<Bill> checkoutBill(@PathVariable ObjectId id) {
         Bill checkoutBill = billService.findByBillId(id);
         if (checkoutBill == null) {
-            LOGGER.debug("Cannot found Bill with [id: {}]", id);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } else {
-            if (isNotAvailableToUpdate(checkoutBill)) {
-                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-            }
-            checkoutBill.setStatus(Status.COMPLETED);
-            double preis = 0;
-            for (Order order : checkoutBill.getOrders()) {
-                preis += order.getQuantity() * order.getProduct().getPreis();
-            }
-            checkoutBill.setPreis(preis);
-            checkoutBill.setUpdatedAt(new Date());
-            billService.updateBill(checkoutBill);
-            addHateoasToBill(checkoutBill);
-            LOGGER.debug("Successful checkout Bill: {}", checkoutBill);
-            return new ResponseEntity<>(checkoutBill, HttpStatus.OK);
+            throw new ResourceNotFoundException("Bill", "id", id);
         }
+        if (isNotAvailableToUpdate(checkoutBill)) {
+            throw new ResourceNotAvailableException("Bill", "status", checkoutBill.getStatus());
+        }
+
+        double preis = 0;
+        for (Order order : checkoutBill.getOrders()) {
+            preis += order.getQuantity() * order.getProduct().getPreis();
+        }
+        checkoutBill.setPreis(preis);
+        checkoutBill.setStatus(Status.COMPLETED);
+        checkoutBill.setUpdatedAt(new Date());
+        billService.updateBill(checkoutBill);
+        LOGGER.debug("Successful checkout Bill: [{}]  -> [{}]", checkoutBill.getBillId(), checkoutBill.getPreis());
+        return new ResponseEntity<>(checkoutBill, HttpStatus.OK);
+
     }
 
     @PutMapping("/{id}/cancel")
-    public HttpEntity<Bill> cancelBill(@PathVariable ObjectId id) {
+    public ResponseEntity<Resource<Bill>> cancelBill(@PathVariable ObjectId id) {
         Bill cancelBill = billService.findByBillId(id);
         if (cancelBill == null) {
-            LOGGER.debug("Cannot found Bill with [id: {}]", id);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } else {
-            if (isNotAvailableToUpdate(cancelBill)) {
-                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-            }
-            cancelBill.setUpdatedAt(new Date());
-            cancelBill.setStatus(Status.CANCELLED);
-            billService.updateBill(cancelBill);
-            addHateoasToBill(cancelBill);
-            LOGGER.debug("Successful cancel Bill: {}", cancelBill);
-            return new ResponseEntity<>(cancelBill, HttpStatus.OK);
+            throw new ResourceNotFoundException("Bill", "id", id);
         }
+        if (isNotAvailableToUpdate(cancelBill)) {
+            throw new ResourceNotAvailableException("Bill", "status", cancelBill.getStatus());
+        }
+        cancelBill.setUpdatedAt(new Date());
+        cancelBill.setStatus(Status.CANCELLED);
+        billService.updateBill(cancelBill);
+        LOGGER.debug("Successful cancel Bill: {}", cancelBill);
+        return ResponseEntity.ok(billResourceAssembler.toResource(cancelBill));
     }
 
     private boolean isNotAvailableToUpdate(Bill bill) {
-        if (bill.getStatus() != Status.IN_PROGRESS) {
-            LOGGER.debug("Method is not allowed." +
-                    " Cannot cancel Bill that is in the {} status.", bill.getStatus());
-            return true;
-        }
-        return false;
+        return bill.getStatus() != Status.IN_PROGRESS;
     }
 
     private boolean isNotAvailableTable(int table) {
-        if (billService.isAvailableTable(Status.IN_PROGRESS, table)) {
-            return false;
-        }
-        LOGGER.debug("Table [{}] is not available. Please checkout then try again later.", table);
-        return true;
-    }
-
-    private void addHateoasToList(List<Bill> bills) {
-        bills.forEach(this::addHateoasToBill);
-    }
-
-    private void addHateoasToBill(Bill bill) {
-        bill.add(linkTo(methodOn(BillController.class)
-                .getAllBills())
-                .withRel("bills"));
-        bill.add(linkTo(methodOn(BillController.class)
-                .getBillById(bill.getBillId()))
-                .withSelfRel());
-        if (bill.getOrders() == null) {
-            bill.setOrders(new ArrayList<>());
-        }
-        bill.getOrders()
-                .forEach(o -> o.add(linkTo(methodOn(OrderController.class)
-                        .getOrderById(o.getOrderId()))
-                        .withSelfRel()));
-        bill.getOrders()
-                .forEach(o -> o.getProduct().add(linkTo(methodOn(ProductController.class)
-                        .getProductById(o.getProduct().getProductId()))
-                        .withSelfRel()));
+        return !billService.isAvailableTable(Status.IN_PROGRESS, table);
     }
 }

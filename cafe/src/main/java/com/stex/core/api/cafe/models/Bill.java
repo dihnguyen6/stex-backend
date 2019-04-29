@@ -98,14 +98,14 @@ public class Bill extends ResourceSupport {
 
     @Override
     public String toString() {
-        return "\nBill {\n" +
-                "\t\"id\": " + id +
-                ",\n\t\"orders\": " + orders +
-                ",\n\t\"preis\": " + preis +
-                ",\n\t\"status\": " + status +
-                ",\n\t\"table\": " + table +
-                ",\n\t\"createdAt\": " + createdAt +
-                ",\n\t\"updatedAt\": " + updatedAt +
-                "\n}";
+        return "Bill{" +
+                "id=" + id +
+                ", orders=" + orders +
+                ", preis=" + preis +
+                ", status=" + status +
+                ", table=" + table +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
     }
 }
