@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.stex.core.api.tools.ObjectID_Serializer;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.hateoas.ResourceSupport;
 
@@ -13,11 +14,20 @@ public class Product extends ResourceSupport {
     private ObjectId id;
 
     private String name;
+
     private double preis;
+
+    @DBRef
+    private Category category;
 
     public Product() {
     }
 
+    public Product(String name, double preis, Category category) {
+        this.name = name;
+        this.preis = preis;
+        this.category = category;
+    }
 
     @JsonSerialize(using = ObjectID_Serializer.class)
     public ObjectId getProductId() {
@@ -44,12 +54,21 @@ public class Product extends ResourceSupport {
         this.preis = preis;
     }
 
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
+
     @Override
     public String toString() {
         return "Product{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", preis=" + preis +
+                ", category=" + category +
                 '}';
     }
 }

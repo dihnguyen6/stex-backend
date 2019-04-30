@@ -69,6 +69,19 @@ public class ProductController {
                 .body(productResourceAssembler.toResource(product));
     }
 
+    @GetMapping("/category/{categoryId}")
+    public Resources<Resource<Product>> getAllByCategory(@PathVariable ObjectId categoryId) {
+        List<Resource<Product>> products = productService.findAllProductsByCategory(categoryId)
+                .stream()
+                .map(productResourceAssembler::toResource)
+                .collect(Collectors.toList());
+        if (products.isEmpty())
+            throw new ResourceNotFoundException("Products", "category", categoryId);
+        LOGGER.debug(productService.findAllProductsByCategory(categoryId).toString());
+        return new Resources<>(products,
+                linkTo(methodOn(ProductController.class).getAllByCategory(categoryId)).withSelfRel());
+    }
+
     @PostMapping("/")
     public ResponseEntity<Resource<Product>> createProduct(@RequestBody Product product) {
         Product createdProduct = productService.updateProduct(product);

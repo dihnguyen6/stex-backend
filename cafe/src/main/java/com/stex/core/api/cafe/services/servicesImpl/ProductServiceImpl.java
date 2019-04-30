@@ -14,13 +14,20 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
 
+
     @Autowired
     public ProductServiceImpl(ProductRepository productRepository) {
         this.productRepository = productRepository;
+
     }
 
     public Product updateProduct(Product product) {
         return productRepository.save(product);
+    }
+
+    @Override
+    public void importProduct(List<Product> products) {
+        productRepository.saveAll(products);
     }
 
     public void deleteProduct(Product product) {
@@ -33,5 +40,9 @@ public class ProductServiceImpl implements ProductService {
 
     public List<Product> findAllProducts() {
         return productRepository.findAll();
+    }
+
+    public List<Product> findAllProductsByCategory(ObjectId categoryId) {
+        return productRepository.findAllByCategory(categoryId);
     }
 }
