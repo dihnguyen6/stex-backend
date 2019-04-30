@@ -39,7 +39,8 @@ public class DoctorController {
     private final DoctorResourceAssembler doctorResourceAssembler;
 
     @Autowired
-    public DoctorController(DoctorService doctorService, DoctorResourceAssembler doctorResourceAssembler) {
+    public DoctorController(DoctorService doctorService,
+                            DoctorResourceAssembler doctorResourceAssembler) {
         this.doctorService = doctorService;
         this.doctorResourceAssembler = doctorResourceAssembler;
     }
@@ -78,7 +79,8 @@ public class DoctorController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ResourceSupport> updateDoctor(@PathVariable ObjectId id, @RequestBody Doctor doctor) {
+    public ResponseEntity<ResourceSupport> updateDoctor(@PathVariable ObjectId id,
+                                                        @RequestBody Doctor doctor) {
         Doctor updateDoctor = doctorService.findByDoctorId(id);
         if (updateDoctor == null) throw new ResourceNotFoundException("Doctor", "id", id);
         if (doctor.getFirstName()!= null) updateDoctor.setFirstName(doctor.getFirstName());

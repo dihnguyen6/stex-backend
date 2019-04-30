@@ -32,7 +32,7 @@ import static org.springframework.hateoas.core.DummyInvocationUtils.methodOn;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 
 @RestController
-@RequestMapping("/api/receptions")
+@RequestMapping(value = "/api/receptions", produces = "application/hal+json")
 public class ReceptionContoller {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
@@ -49,7 +49,8 @@ public class ReceptionContoller {
                 .stream()
                 .map(receptionResourceAssembler::toResource)
                 .collect(Collectors.toList());
-        if (resources.isEmpty()) throw new ResourceNotFoundException("Receptions", null, null);
+        if (resources.isEmpty())
+            throw new ResourceNotFoundException("Receptions", null, null);
         LOGGER.debug(receptionService.findAllReceptions().toString());
         return new Resources<>(resources,
                 linkTo(methodOn(ReceptionContoller.class).getAllReception()).withSelfRel());
@@ -58,7 +59,8 @@ public class ReceptionContoller {
     @GetMapping("/{id}")
     public ResponseEntity<ResourceSupport> getReceptionById(@PathVariable ObjectId id) {
         Reception reception = receptionService.findByReceptionId(id);
-        if (reception == null) throw new ResourceNotFoundException("Reception", "id", id);
+        if (reception == null)
+            throw new ResourceNotFoundException("Reception", "id", id);
         LOGGER.debug("Successful found Reception:{}", reception);
         return ResponseEntity
                 .created(linkTo(methodOn(ReceptionContoller.class).getReceptionById(id)).toUri())
@@ -83,8 +85,10 @@ public class ReceptionContoller {
     public ResponseEntity<ResourceSupport> updateReception(@PathVariable ObjectId id
             , @RequestBody Reception reception) {
         Reception updateReception = receptionService.findByReceptionId(id);
-        if (updateReception == null) throw new ResourceNotFoundException("Reception", "id", id);
-        if (updateReception.getStatus() != Status.IN_PROGRESS) throw new ResourceForbiddenException("Reception", "status", updateReception.getStatus());
+        if (updateReception == null)
+            throw new ResourceNotFoundException("Reception", "id", id);
+        if (updateReception.getStatus() != Status.IN_PROGRESS)
+            throw new ResourceForbiddenException("Reception", "status", updateReception.getStatus());
         if (reception.getDescription() != null) updateReception.setDescription(reception.getDescription());
         if (reception.getMedicine() != null) updateReception.setMedicine(reception.getMedicine());
         updateReception.setUpdatedAt(new Date());
@@ -97,7 +101,8 @@ public class ReceptionContoller {
     public ResponseEntity<ResourceSupport> updateStatusReception(@PathVariable ObjectId id
             , @PathVariable String status) {
         Reception reception = receptionService.findByReceptionId(id);
-        if (reception == null) throw new ResourceNotFoundException("Reception", "id", id);
+        if (reception == null)
+            throw new ResourceNotFoundException("Reception", "id", id);
         if (reception.getStatus() != Status.IN_PROGRESS)
             throw new ResourceForbiddenException("Reception", "status", reception.getStatus());
         if (status.equals("complete"))

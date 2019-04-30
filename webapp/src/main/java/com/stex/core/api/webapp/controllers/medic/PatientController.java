@@ -29,7 +29,7 @@ import static org.springframework.hateoas.core.DummyInvocationUtils.methodOn;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 
 @RestController
-@RequestMapping("/api/patients")
+@RequestMapping(value = "/api/patients", produces = "application/hal+json")
 public class PatientController {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
@@ -39,7 +39,8 @@ public class PatientController {
     private final PatientResourceAssembler patientResourceAssembler;
 
     @Autowired
-    public PatientController(PatientService patientService, PatientResourceAssembler patientResourceAssembler) {
+    public PatientController(PatientService patientService,
+                             PatientResourceAssembler patientResourceAssembler) {
         this.patientService = patientService;
         this.patientResourceAssembler = patientResourceAssembler;
     }
@@ -50,7 +51,8 @@ public class PatientController {
                 .stream()
                 .map(patientResourceAssembler::toResource)
                 .collect(Collectors.toList());
-        if (resources.isEmpty()) throw new ResourceNotFoundException("Patients", null, null);
+        if (resources.isEmpty())
+            throw new ResourceNotFoundException("Patients", null, null);
         LOGGER.debug(resources.toString());
         return new Resources<>(resources,
                 linkTo(methodOn(PatientController.class).getAllPatients()).withSelfRel());
@@ -80,7 +82,8 @@ public class PatientController {
     @PutMapping("/{id}")
     public ResponseEntity<ResourceSupport> updatePatient(@PathVariable ObjectId id, @RequestBody Patient patient) {
         Patient updatePatient = patientService.findByPatientId(id);
-        if (updatePatient == null) throw new ResourceNotFoundException("Patient", "id", id);
+        if (updatePatient == null)
+            throw new ResourceNotFoundException("Patient", "id", id);
         if (patient.getFirstName() != null) updatePatient.setFirstName(patient.getFirstName());
         if (patient.getLastName() != null) updatePatient.setLastName(patient.getLastName());
         if (patient.getInformation() != null) updatePatient.setInformation(patient.getInformation());

@@ -38,7 +38,7 @@ import static org.springframework.hateoas.core.DummyInvocationUtils.methodOn;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 
 @RestController
-@RequestMapping(value = "/api/bills", produces = "application/json")
+@RequestMapping(value = "/api/bills", produces = "application/hal+json")
 public class BillController {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
@@ -50,7 +50,8 @@ public class BillController {
     private final BillResourceAssembler billResourceAssembler;
 
     @Autowired
-    public BillController(BillService billService, OrderService orderService, BillResourceAssembler billResourceAssembler) {
+    public BillController(BillService billService, OrderService orderService,
+                          BillResourceAssembler billResourceAssembler) {
         this.billService = billService;
         this.orderService = orderService;
         this.billResourceAssembler = billResourceAssembler;
@@ -58,12 +59,12 @@ public class BillController {
 
     @GetMapping("/")
     public Resources<Resource<Bill>> getAllBills() {
-        List<Resource<Bill>> bills = billService.findAllBills().stream()
+        List<Resource<Bill>> bills = billService.findAllBills()
+                .stream()
                 .map(billResourceAssembler::toResource)
                 .collect(Collectors.toList());
-        if (bills.isEmpty()) {
+        if (bills.isEmpty())
             throw new ResourceNotFoundException("Bills", null, null);
-        }
         LOGGER.debug(billService.findAllBills().toString());
         return new Resources<>(bills,
                 linkTo(methodOn(BillController.class).getAllBills()).withSelfRel());
@@ -72,9 +73,8 @@ public class BillController {
     @GetMapping("/{id}")
     public ResponseEntity<Resource<Bill>> getBillById(@PathVariable ObjectId id) {
         Bill bill = billService.findByBillId(id);
-        if (bill == null) {
+        if (bill == null)
             throw new ResourceNotFoundException("Bill", "id", id);
-        }
         LOGGER.debug(bill.toString());
         return ResponseEntity.created(linkTo(methodOn(BillController.class)
                 .getBillById(id)).toUri())
@@ -87,9 +87,8 @@ public class BillController {
                 .stream()
                 .map(billResourceAssembler::toResource)
                 .collect(Collectors.toList());
-        if (bills.isEmpty()) {
+        if (bills.isEmpty())
             throw new ResourceNotFoundException("Bills", "status", Status.IN_PROGRESS);
-        }
         LOGGER.debug(billService.findAllByBillStatus(Status.IN_PROGRESS).toString());
         return new Resources<>(bills,
                 linkTo(methodOn(BillController.class).getBillsInProgress()).withSelfRel());
@@ -101,9 +100,8 @@ public class BillController {
                 .stream()
                 .map(billResourceAssembler::toResource)
                 .collect(Collectors.toList());
-        if (bills.isEmpty()) {
+        if (bills.isEmpty())
             throw new ResourceNotFoundException("Bills", "status", Status.COMPLETED);
-        }
         LOGGER.debug(billService.findAllByBillStatus(Status.COMPLETED).toString());
         return new Resources<>(bills,
                 linkTo(methodOn(BillController.class)).withSelfRel());
@@ -115,9 +113,8 @@ public class BillController {
                 .stream()
                 .map(billResourceAssembler::toResource)
                 .collect(Collectors.toList());
-        if (bills.isEmpty()) {
+        if (bills.isEmpty())
             throw new ResourceNotFoundException("Bills", "status", Status.CANCELLED);
-        }
         LOGGER.debug(billService.findAllByBillStatus(Status.CANCELLED).toString());
         return new Resources<>(bills,
                 linkTo(methodOn(BillController.class)).withSelfRel());
@@ -125,9 +122,8 @@ public class BillController {
 
     @PostMapping("/")
     public ResponseEntity<Resource<Bill>> createBill(@RequestBody Bill bill) {
-        if (isNotAvailableTable(bill.getTable())) {
+        if (isNotAvailableTable(bill.getTable()))
             throw new ResourceForbiddenException("Bill", "table", bill.getTable());
-        }
         bill.setUpdatedAt(new Date());
         bill.setCreatedAt(new Date());
         bill.setStatus(Status.IN_PROGRESS);
@@ -143,11 +139,11 @@ public class BillController {
     }
 
     @PutMapping("/{id}/add/{orderId}")
-    public ResponseEntity<ResourceSupport> addOrderToBill(@PathVariable ObjectId id, @PathVariable ObjectId orderId) {
+    public ResponseEntity<ResourceSupport> addOrderToBill(@PathVariable ObjectId id,
+                                                          @PathVariable ObjectId orderId) {
         Bill updateBill = billService.findByBillId(id);
-        if (updateBill == null) {
+        if (updateBill == null)
             throw new ResourceNotFoundException("Bill", "id", id);
-        }
         Order createOrder = orderService.findByOrderId(orderId);
         List<Order> orders = updateBill.getOrders();
         orders.add(createOrder);
@@ -159,17 +155,15 @@ public class BillController {
     }
 
     @PutMapping("/{id}/change/{table}")
-    public ResponseEntity<Resource<Bill>> changeTable(@PathVariable ObjectId id, @PathVariable int table) {
+    public ResponseEntity<Resource<Bill>> changeTable(@PathVariable ObjectId id,
+                                                      @PathVariable int table) {
         Bill updateBill = billService.findByBillId(id);
-        if (updateBill == null) {
+        if (updateBill == null)
             throw new ResourceNotFoundException("Bill", "id", id);
-        }
-        if (isNotAvailableToUpdate(updateBill)) {
+        if (isNotAvailableToUpdate(updateBill))
             throw new ResourceTableNotAvailableException("Bill", "status", updateBill.getStatus());
-        }
-        if (isNotAvailableTable(table)) {
+        if (isNotAvailableTable(table))
             throw new ResourceForbiddenException("Bill", "table", table);
-        }
         updateBill.setUpdatedAt(new Date());
         updateBill.setTable(table);
         billService.updateBill(updateBill);
@@ -178,14 +172,13 @@ public class BillController {
     }
 
     @PutMapping("/{id}/{status}")
-    public ResponseEntity<ResourceSupport> updateStatusBill(@PathVariable ObjectId id, @PathVariable String status) {
+    public ResponseEntity<ResourceSupport> updateStatusBill(@PathVariable ObjectId id,
+                                                            @PathVariable String status) {
         Bill bill = billService.findByBillId(id);
-        if (bill == null) {
+        if (bill == null)
             throw new ResourceNotFoundException("Bill", "id", id);
-        }
-        if (isNotAvailableToUpdate(bill)) {
+        if (isNotAvailableToUpdate(bill))
             throw new ResourceForbiddenException("Bill", "status", bill.getStatus());
-        }
         bill.setUpdatedAt(new Date());
         if (status.equals("complete")) {
             double preis = 0;

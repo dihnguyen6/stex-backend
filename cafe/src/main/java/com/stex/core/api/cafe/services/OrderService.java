@@ -8,7 +8,9 @@ import java.util.List;
 
 public interface OrderService {
     Order findByOrderId(ObjectId id);
+
     List<Order> findAllOrders();
+
     List<Order> findByOrderStatus(Status status);
 
     //List<Order> findByBillId(ObjectId id);

@@ -40,7 +40,8 @@ public class MedicineController {
     private final MedicineResourceAssembler medicineResourceAssembler;
 
     @Autowired
-    public MedicineController(MedicineService medicineService, MedicineResourceAssembler medicineResourceAssembler) {
+    public MedicineController(MedicineService medicineService,
+                              MedicineResourceAssembler medicineResourceAssembler) {
         this.medicineService = medicineService;
         this.medicineResourceAssembler = medicineResourceAssembler;
     }

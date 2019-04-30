@@ -35,7 +35,7 @@ import static org.springframework.hateoas.core.DummyInvocationUtils.methodOn;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 
 @RestController
-@RequestMapping("/api/diagnoses")
+@RequestMapping(value = "/api/diagnoses", produces = "application/hal+json")
 public class DiagnoseController {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
@@ -47,7 +47,9 @@ public class DiagnoseController {
     private final DiagnoseResourceAssembler diagnoseResourceAssembler;
 
     @Autowired
-    public DiagnoseController(DiagnoseService diagnoseService, ReceptionService receptionService, DiagnoseResourceAssembler diagnoseResourceAssembler) {
+    public DiagnoseController(DiagnoseService diagnoseService,
+                              ReceptionService receptionService,
+                              DiagnoseResourceAssembler diagnoseResourceAssembler) {
         this.diagnoseService = diagnoseService;
         this.receptionService = receptionService;
         this.diagnoseResourceAssembler = diagnoseResourceAssembler;
@@ -59,9 +61,8 @@ public class DiagnoseController {
                 .stream()
                 .map(diagnoseResourceAssembler::toResource)
                 .collect(Collectors.toList());
-        if (diagnoses.isEmpty()) {
+        if (diagnoses.isEmpty())
             throw new ResourceNotFoundException("Diagnose", null, null);
-        }
         LOGGER.debug(diagnoseService.findAllDiagnoses().toString());
         return new Resources<>(diagnoses,
                 linkTo(methodOn(DiagnoseController.class).getAllDiagnoses()).withSelfRel());
@@ -70,9 +71,8 @@ public class DiagnoseController {
     @GetMapping("/{id}")
     public ResponseEntity<Resource<Diagnose>> getDiagnoseById(@PathVariable ObjectId id) {
         Diagnose diagnose = diagnoseService.findByDiagnoseId(id);
-        if (diagnose == null) {
+        if (diagnose == null)
             throw new ResourceNotFoundException("Diagnose", "id", id);
-        }
         LOGGER.debug(diagnose.toString());
         return ResponseEntity.created(linkTo(methodOn(DiagnoseController.class)
                 .getDiagnoseById(id)).toUri())
@@ -85,9 +85,8 @@ public class DiagnoseController {
                 .stream()
                 .map(diagnoseResourceAssembler::toResource)
                 .collect(Collectors.toList());
-        if (diagnoses.isEmpty()) {
+        if (diagnoses.isEmpty())
             throw new ResourceNotFoundException("Diagnoses", "doctorId", doctorId);
-        }
         LOGGER.debug(diagnoses.toString());
         return new Resources<>(diagnoses,
                 linkTo(methodOn(DiagnoseController.class).getDiagnosesByDoctor(doctorId)).withSelfRel());
@@ -99,9 +98,8 @@ public class DiagnoseController {
                 .stream()
                 .map(diagnoseResourceAssembler::toResource)
                 .collect(Collectors.toList());
-        if (diagnoses.isEmpty()) {
+        if (diagnoses.isEmpty())
             throw new ResourceNotFoundException("Diagnoses", "patientId", patientId);
-        }
         LOGGER.debug(diagnoses.toString());
         return new Resources<>(diagnoses,
                 linkTo(methodOn(DiagnoseController.class).getDiagnosesByPatient(patientId)).withSelfRel());
@@ -123,7 +121,8 @@ public class DiagnoseController {
     }
 
     @PutMapping("/{id}/{status}")
-    public ResponseEntity<ResourceSupport> updateStatusDiagnose(@PathVariable ObjectId id, @PathVariable String status) {
+    public ResponseEntity<ResourceSupport> updateStatusDiagnose(@PathVariable ObjectId id,
+                                                                @PathVariable String status) {
         Diagnose diagnose = validateModifiyable(id);
         diagnose.setUpdatedAt(new Date());
         if (status.equals("complete")) {
@@ -137,8 +136,8 @@ public class DiagnoseController {
     }
 
     @PutMapping("/{id}/add/{receptionId}")
-    public ResponseEntity<ResourceSupport> addReceptionToDiagnose(@PathVariable ObjectId id
-            , @PathVariable ObjectId receptionId) {
+    public ResponseEntity<ResourceSupport> addReceptionToDiagnose(@PathVariable ObjectId id,
+                                                                  @PathVariable ObjectId receptionId) {
         Diagnose diagnose = validateModifiyable(id);
         diagnose.setUpdatedAt(new Date());
         List<Reception> receptions = diagnose.getReceptions();

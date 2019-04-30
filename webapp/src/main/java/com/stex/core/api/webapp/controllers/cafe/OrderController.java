@@ -4,7 +4,6 @@ import com.stex.core.api.cafe.models.Order;
 import com.stex.core.api.cafe.services.OrderService;
 import com.stex.core.api.tools.ExceptionHandler.ResourceForbiddenException;
 import com.stex.core.api.tools.ExceptionHandler.ResourceNotFoundException;
-import com.stex.core.api.tools.ExceptionHandler.ResourceTableNotAvailableException;
 import com.stex.core.api.tools.constants.Status;
 import com.stex.core.api.webapp.ResourcesAssembler.CafeResource.OrderResourceAssembler;
 import org.bson.types.ObjectId;
@@ -42,19 +41,20 @@ public class OrderController {
     private final OrderResourceAssembler orderResourceAssembler;
 
     @Autowired
-    public OrderController(OrderService orderService, OrderResourceAssembler orderResourceAssembler) {
+    public OrderController(OrderService orderService,
+                           OrderResourceAssembler orderResourceAssembler) {
         this.orderService = orderService;
         this.orderResourceAssembler = orderResourceAssembler;
     }
 
     @GetMapping("/")
     public Resources<Resource<Order>> getAllOrders() {
-        List<Resource<Order>> orders = orderService.findAllOrders().stream()
+        List<Resource<Order>> orders = orderService.findAllOrders()
+                .stream()
                 .map(orderResourceAssembler::toResource)
                 .collect(Collectors.toList());
-        if (orders.isEmpty()) {
+        if (orders.isEmpty())
             throw new ResourceNotFoundException("Orders", null, null);
-        }
         LOGGER.debug(orderService.findAllOrders().toString());
         return new Resources<>(orders,
                 linkTo(methodOn(OrderController.class).getAllOrders()).withSelfRel());
@@ -63,9 +63,8 @@ public class OrderController {
     @GetMapping("/{id}")
     public ResponseEntity<Resource<Order>> getOrderById(@PathVariable ObjectId id) {
         Order order = orderService.findByOrderId(id);
-        if (order == null) {
+        if (order == null)
             throw new ResourceNotFoundException("Order", "id", id);
-        }
         LOGGER.debug(order.toString());
         return ResponseEntity.created(linkTo(methodOn(OrderController.class)
                 .getOrderById(id)).toUri())
@@ -74,12 +73,12 @@ public class OrderController {
 
     @GetMapping("/progress")
     public Resources<Resource<Order>> getProgressOrders() {
-        List<Resource<Order>> progressOrders = orderService.findByOrderStatus(Status.IN_PROGRESS).stream()
+        List<Resource<Order>> progressOrders = orderService.findByOrderStatus(Status.IN_PROGRESS)
+                .stream()
                 .map(orderResourceAssembler::toResource)
                 .collect(Collectors.toList());
-        if (progressOrders.isEmpty()) {
+        if (progressOrders.isEmpty())
             throw new ResourceNotFoundException("Orders", "status", Status.IN_PROGRESS);
-        }
         LOGGER.debug(progressOrders.toString());
         return new Resources<>(progressOrders,
                 linkTo(methodOn(OrderController.class).getProgressOrders()).withSelfRel());
@@ -87,12 +86,12 @@ public class OrderController {
 
     @GetMapping("/complete")
     public Resources<Resource<Order>> getCompleteOrders() {
-        List<Resource<Order>> completeOrders = orderService.findByOrderStatus(Status.COMPLETED).stream()
+        List<Resource<Order>> completeOrders = orderService.findByOrderStatus(Status.COMPLETED)
+                .stream()
                 .map(orderResourceAssembler::toResource)
                 .collect(Collectors.toList());
-        if (completeOrders.isEmpty()) {
+        if (completeOrders.isEmpty())
             throw new ResourceNotFoundException("Orders", "status", Status.COMPLETED);
-        }
         LOGGER.debug(completeOrders.toString());
         return new Resources<>(completeOrders,
                 linkTo(methodOn(OrderController.class).getProgressOrders()).withSelfRel());
@@ -100,12 +99,12 @@ public class OrderController {
 
     @GetMapping("/cancel")
     public Resources<Resource<Order>> getCancelOrders() {
-        List<Resource<Order>> cancelOrders = orderService.findByOrderStatus(Status.COMPLETED).stream()
+        List<Resource<Order>> cancelOrders = orderService.findByOrderStatus(Status.COMPLETED)
+                .stream()
                 .map(orderResourceAssembler::toResource)
                 .collect(Collectors.toList());
-        if (cancelOrders.isEmpty()) {
+        if (cancelOrders.isEmpty())
             throw new ResourceNotFoundException("Orders", "status", Status.CANCELLED);
-        }
         LOGGER.debug(cancelOrders.toString());
         return new Resources<>(cancelOrders,
                 linkTo(methodOn(OrderController.class).getProgressOrders()).withSelfRel());
@@ -126,34 +125,33 @@ public class OrderController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ResourceSupport> updateOrder(@PathVariable ObjectId id, @RequestBody Order order) {
+    public ResponseEntity<ResourceSupport> updateOrder(@PathVariable ObjectId id,
+                                                       @RequestBody Order order) {
         Order updateOrder = orderService.findByOrderId(id);
-        if (updateOrder == null) {
+        if (updateOrder == null)
             throw new ResourceNotFoundException("Order", "id", id);
-        } else {
-            order.setUpdatedAt(new Date());
-            if (order.getDescription() != null) {
-                updateOrder.setDescription(order.getDescription());
-            }
-            if (order.getProduct() != null) {
-                updateOrder.setProduct(order.getProduct());
-            }
-            updateOrder.setQuantity(order.getQuantity());
-            orderService.updateOrder(order);
-            LOGGER.debug("Successful updated Order with id: [{}]{}", id, updateOrder);
-            return ResponseEntity.ok(orderResourceAssembler.toResource(updateOrder));
+        order.setUpdatedAt(new Date());
+        if (order.getDescription() != null) {
+            updateOrder.setDescription(order.getDescription());
         }
+        if (order.getProduct() != null) {
+            updateOrder.setProduct(order.getProduct());
+        }
+        updateOrder.setQuantity(order.getQuantity());
+        orderService.updateOrder(order);
+        LOGGER.debug("Successful updated Order with id: [{}]{}", id, updateOrder);
+        return ResponseEntity.ok(orderResourceAssembler.toResource(updateOrder));
+
     }
 
     @PutMapping("/{id}/{status}")
-    public ResponseEntity<ResourceSupport> updateStatusOrder(@PathVariable ObjectId id, @PathVariable String status) {
+    public ResponseEntity<ResourceSupport> updateStatusOrder(@PathVariable ObjectId id,
+                                                             @PathVariable String status) {
         Order order = orderService.findByOrderId(id);
-        if (order == null) {
+        if (order == null)
             throw new ResourceNotFoundException("Order", "id", id);
-        }
-        if (order.getStatus() != Status.IN_PROGRESS) {
+        if (order.getStatus() != Status.IN_PROGRESS)
             throw new ResourceForbiddenException("Order", "status", order.getStatus());
-        }
         order.setUpdatedAt(new Date());
         if (status.equals("complete")) {
             order.setStatus(Status.COMPLETED);

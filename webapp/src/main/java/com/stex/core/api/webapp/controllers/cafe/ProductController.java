@@ -39,7 +39,8 @@ public class ProductController {
     private final ProductResourceAssembler productResourceAssembler;
 
     @Autowired
-    public ProductController(ProductService productService, ProductResourceAssembler productResourceAssembler) {
+    public ProductController(ProductService productService,
+                             ProductResourceAssembler productResourceAssembler) {
         this.productService = productService;
         this.productResourceAssembler = productResourceAssembler;
     }
@@ -50,9 +51,8 @@ public class ProductController {
                 .stream()
                 .map(productResourceAssembler::toResource)
                 .collect(Collectors.toList());
-        if (products.isEmpty()) {
+        if (products.isEmpty())
             throw new ResourceNotFoundException("Products", null, null);
-        }
         LOGGER.debug(productService.findAllProducts().toString());
         return new Resources<>(products,
                 linkTo(methodOn(ProductController.class).getAllProduct()).withSelfRel());
@@ -61,9 +61,8 @@ public class ProductController {
     @GetMapping("/{id}")
     public ResponseEntity<Resource<Product>> getProductById(@PathVariable ObjectId id) {
         Product product = productService.findByProductId(id);
-        if (product == null) {
+        if (product == null)
             throw new ResourceNotFoundException("Product", "id", id);
-        }
         LOGGER.debug(product.toString());
         return ResponseEntity.created(linkTo(methodOn(ProductController.class)
                 .getProductById(id)).toUri())
@@ -83,14 +82,13 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ResourceSupport> updateProduct(@PathVariable ObjectId id, @RequestBody Product product) {
+    public ResponseEntity<ResourceSupport> updateProduct(@PathVariable ObjectId id,
+                                                         @RequestBody Product product) {
         Product updateProduct = productService.findByProductId(id);
-        if (updateProduct == null) {
+        if (updateProduct == null)
             throw new ResourceNotFoundException("Product", "id", id);
-        }
-        if (product.getName() != null) {
+        if (product.getName() != null)
             updateProduct.setName(product.getName());
-        }
         updateProduct.setPreis(product.getPreis());
         productService.updateProduct(updateProduct);
         LOGGER.debug("Successful updated Product with id: [{}]{}", id, updateProduct);
@@ -100,9 +98,8 @@ public class ProductController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Resource<Product>> deleteProduct(@PathVariable ObjectId id) {
         Product deleteProduct = productService.findByProductId(id);
-        if (deleteProduct == null) {
+        if (deleteProduct == null)
             throw new ResourceNotFoundException("Product", "id", id);
-        }
         productService.deleteProduct(deleteProduct);
         LOGGER.debug("Successful deleted Product [id: {}]", id);
         return ResponseEntity.ok().build();

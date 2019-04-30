@@ -1,39 +1,42 @@
-/*
 package com.stex.core.api.webapp.configurations;
 
 import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
+import org.springframework.boot.autoconfigure.mongo.MongoProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
-import org.springframework.data.mongodb.core.convert.DefaultMongoTypeMapper;
-import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
-import org.springframework.data.mongodb.core.convert.MongoTypeMapper;
-import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 
 @Configuration
+@EnableConfigurationProperties(MongoDbProperties.class)
 public class MongoDbConfig {
 
-    @Bean
-    public MongoClient mongoDbClient() throws Exception {
-        return new MongoClient(new ServerAddress("127.0.0.1"));
+    private final MongoDbProperties mongoProperties = new MongoDbProperties();
+
+    @Primary
+    @Bean(name = CafeMongoConfig.MONGO_TEMPLATE)
+    public MongoTemplate primaryMongoTemplate() throws Exception {
+        return new MongoTemplate(primaryFactory(this.mongoProperties.getCafe()));
+    }
+
+    @Bean(name = MedicMongoConfig.MONGO_TEMPLATE)
+    public MongoTemplate secondaryMongoTemplate() throws Exception {
+        return new MongoTemplate(secondaryFactory(this.mongoProperties.getMedic()));
     }
 
     @Bean
-    public MongoDbFactory mongoDbFactory() throws Exception {
-        return new SimpleMongoDbFactory(mongoDbClient(), "cafe");
+    @Primary
+    public MongoDbFactory primaryFactory(final MongoProperties mongo) throws Exception {
+        return new SimpleMongoDbFactory(new MongoClient(mongo.getHost(), mongo.getPort()),
+                mongo.getDatabase());
     }
 
     @Bean
-    public MongoTemplate mongoTemplate() throws Exception {
-        MongoTypeMapper typeMapper = new DefaultMongoTypeMapper(null);
-        MappingMongoConverter converter = new MappingMongoConverter(mongoDbFactory(), new MongoMappingContext());
-        converter.setTypeMapper(typeMapper);
-
-        MongoTemplate mongoTemplate = new MongoTemplate(mongoDbFactory(), converter);
-        return mongoTemplate;
+    public MongoDbFactory secondaryFactory(final MongoProperties mongo) throws Exception {
+        return new SimpleMongoDbFactory(new MongoClient(mongo.getHost(), mongo.getPort()),
+                mongo.getDatabase());
     }
 }
-*/
